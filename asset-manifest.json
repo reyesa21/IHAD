@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/IHAD/static/css/main.346587ae.css",
-    "main.js": "/IHAD/static/js/main.167daedd.js",
-    "static/js/787.0817d6ef.chunk.js": "/IHAD/static/js/787.0817d6ef.chunk.js",
-    "index.html": "/IHAD/index.html",
-    "main.346587ae.css.map": "/IHAD/static/css/main.346587ae.css.map",
-    "main.167daedd.js.map": "/IHAD/static/js/main.167daedd.js.map",
-    "787.0817d6ef.chunk.js.map": "/IHAD/static/js/787.0817d6ef.chunk.js.map"
+    "main.css": "/static/css/main.346587ae.css",
+    "main.js": "/static/js/main.93bad2d8.js",
+    "static/js/787.0817d6ef.chunk.js": "/static/js/787.0817d6ef.chunk.js",
+    "index.html": "/index.html",
+    "main.346587ae.css.map": "/static/css/main.346587ae.css.map",
+    "main.93bad2d8.js.map": "/static/js/main.93bad2d8.js.map",
+    "787.0817d6ef.chunk.js.map": "/static/js/787.0817d6ef.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.346587ae.css",
-    "static/js/main.167daedd.js"
+    "static/js/main.93bad2d8.js"
   ]
 }
