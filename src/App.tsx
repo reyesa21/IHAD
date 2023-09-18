@@ -80,11 +80,6 @@ const Doctor = styled.h1<{shakeduration: string, showdetails: string}>`
   &:hover {
     cursor: pointer;
   }
-  &:active {
-    background-color: ${DOCTOR_TEXT_COLOR};
-    color: ${DOCTOR_BACKGROUND_COLOR};
-    box-shadow: 5px 5px 100px ${DOCTOR_TEXT_COLOR};
-  }
 `
 
 const Wrapper = styled.section`
