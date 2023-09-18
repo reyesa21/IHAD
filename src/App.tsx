@@ -130,6 +130,13 @@ function renderDoctorText(currentDate: number): string {
 }
 
 function renderDetails(currentDate: number): string {
+  const randomNum: number = Math.floor(Math.random() * 1000);
+
+  if(EASTER_EGGS[randomNum]) {
+    return EASTER_EGGS[randomNum];
+  }
+
+
   let closestExam: string = '';
   let closestExamDate: number = Infinity;
 
@@ -158,12 +165,6 @@ function renderDetails(currentDate: number): string {
 }
 
 function renderText(currentDate: number, showDetails: boolean): string {
-  const randomNum: number = Math.floor(Math.random() * 500);
-
-  if(EASTER_EGGS[randomNum]) {
-    return EASTER_EGGS[randomNum];
-  }
-
   return showDetails ? renderDetails(currentDate) : renderDoctorText(currentDate)
 }
 
