@@ -15,6 +15,23 @@ const GRAD_TIME: number = Number(new Date('2027-05-07'));
 const START_TIME = Number(new Date('2023-07-17'));
 const TIME_TO_GRADUATION = GRAD_TIME - START_TIME;
 
+const EXAMS: {[index: string]: number} = {
+  'Anatomy Midterm': Number(new Date('2023-09-26 13:00')),
+  'FMS Exam 2': Number(new Date('2023-10-16 13:00')),
+  'AIM Exam': Number(new Date('2023-10-31 13:00')),
+  'Embryo, Anatomy, Histology Exam': Number(new Date('2023-11-20 13:00')),
+  'FCP Written Exam': Number(new Date('2023-12-07 13:00')),
+  'FMS Exam 3': Number(new Date('2023-12-08 13:00')),
+  'Final Cumulative FNS Exam': Number(new Date('2023-12-12 13:00')),
+}
+
+const EASTER_EGGS: string[] = 
+[
+  'You\'re a wizard, Hayley!',
+  'I love you.',
+  'Don\'t worry about the little things. Bees, Trees.'
+]
+  
 let ColorScheme = require('color-scheme');
 let scheme = new ColorScheme;
 
@@ -41,25 +58,33 @@ const shakeAnimation = keyframes`
   `
 
 
-const Doctor = styled.h1<{shakeduration: string}>`
+const Doctor = styled.h1<{shakeduration: string, showdetails: string}>`
   user-select: none;
   font-size: 8vw;
   text-align: center;
-  color: ${DOCTOR_TEXT_COLOR};
   align-self: center;
   align-items: center;
   width: 100%;
   border-radius: 100px;
   padding: 10px;
   margin: 50px;
-  background-color: ${DOCTOR_BACKGROUND_COLOR};
-  box-shadow: 5px 5px 100px ${DOCTOR_BACKGROUND_COLOR};
+  background-color: ${props => props.showdetails === 'false' ? DOCTOR_BACKGROUND_COLOR: DOCTOR_TEXT_COLOR};
+  color: ${props => props.showdetails === 'false' ? DOCTOR_TEXT_COLOR : DOCTOR_BACKGROUND_COLOR};
+  box-shadow: ${props => css`5px 5px 100px ${props.showdetails === 'false' ? DOCTOR_BACKGROUND_COLOR : DOCTOR_TEXT_COLOR}`};
   animation: ${props => css`linear ${props.shakeduration} infinite alternate ${shakeAnimation}`};
   text-shadow: -1px 1px 0 #2d2c2c,
                 1px 1px 0 #2d2c2c,
                 1px -1px 0 #2d2c2c,
                -1px -1px 0 #2d2c2c;
   overflow: hidden;
+  &:hover {
+    cursor: pointer;
+  }
+  &:active {
+    background-color: ${DOCTOR_TEXT_COLOR};
+    color: ${DOCTOR_BACKGROUND_COLOR};
+    box-shadow: 5px 5px 100px ${DOCTOR_TEXT_COLOR};
+  }
 `
 
 const Wrapper = styled.section`
@@ -89,8 +114,6 @@ const PARTICLE_MAP: {[key: number]: string} = {
   100: 'fireworks',
 }
 
-console.log('hey', PERCENT_POINT);
-console.log(PARTICLE_PRESETS)
 
 const random_preset: string = PARTICLE_MAP[PERCENT_POINT];
 
@@ -107,6 +130,48 @@ function getPercentDoctor(currentDate: number): number {
   return Math.min(100, (currentDate - START_TIME) / TIME_TO_GRADUATION * 100);
 }
 
+function renderDoctorText(currentDate: number): string {
+  return `${currentDate - START_TIME >= TIME_TO_GRADUATION ? 'Dr.' : ''} Hayley is ${getPercentDoctor(currentDate).toFixed(2)}% Doctor!`
+}
+
+function renderDetails(currentDate: number): string {
+  let closestExam: string = '';
+  let closestExamDate: number = Infinity;
+
+  for(const exam in EXAMS) {
+    if(EXAMS[exam] >= currentDate && EXAMS[exam] < closestExamDate) {
+      closestExam = exam;
+      closestExamDate = EXAMS[exam] - currentDate;
+    }
+  }
+
+  const daysUntilExam: number = Math.floor(closestExamDate / 86400000);
+
+  if(daysUntilExam === 1) {
+    return `Good luck on your ${closestExam} tomorrow!`;
+  }
+
+  if(daysUntilExam < 1) {
+    return `Good luck on your ${closestExam} today!`;
+  }
+
+  if(daysUntilExam === Infinity) {
+    return `No more exams... for now.`;
+  }
+  
+  return `${closestExam} in ${Math.floor(closestExamDate / 86400000)} days!`;
+}
+
+function renderText(currentDate: number, showDetails: boolean): string {
+  const randomNum: number = Math.floor(Math.random() * 500);
+
+  if(EASTER_EGGS[randomNum]) {
+    return EASTER_EGGS[randomNum];
+  }
+
+  return showDetails ? renderDetails(currentDate) : renderDoctorText(currentDate)
+}
+
 function App() {
     // Here we initialize the tsParticle engine
   const particlesInit = useCallback(async (engine: Engine) => {
@@ -118,6 +183,8 @@ function App() {
 
   const [currentDate, setCurrentDate] = useState(Number(new Date()));
   const [shakeDuration, setShakeDuration] = useState(calculateShakeDuration(currentDate));
+  const [showDetails, setShowDetails] = useState(false);
+
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -142,8 +209,8 @@ function App() {
     />
 
     <Doctor
-      shakeduration={shakeDuration}
-    >{currentDate - START_TIME >= TIME_TO_GRADUATION ? 'Dr.' : ''} Hayley is {getPercentDoctor(currentDate).toFixed(2)}% Doctor!</Doctor>
+      shakeduration={shakeDuration} showdetails={showDetails.toString()} onClick={() => setShowDetails(!showDetails)}
+    >{renderText(currentDate, showDetails)}</Doctor>
   </Wrapper>
     );
     }
