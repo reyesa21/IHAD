@@ -5,24 +5,26 @@ import { styled, keyframes, css } from 'styled-components';
 import { loadFull } from 'tsparticles';
 import { tsParticles } from "tsparticles-engine";
 import configs from "tsparticles-demo-configs";
-
+import * as dateFns from 'date-fns';
 
 
 import type { RefObject } from 'react';
 import type { Container, Engine } from "tsparticles-engine";
 
+const TEST_DATE: string = '';
+
 const GRAD_TIME: number = Number(new Date('2027-05-07'));
 const START_TIME = Number(new Date('2023-07-17'));
 const TIME_TO_GRADUATION = GRAD_TIME - START_TIME;
 
-const EXAMS: {[index: string]: number} = {
-  'Anatomy Midterm': Number(new Date('2023-09-26 13:00')),
-  'FMS Exam 2': Number(new Date('2023-10-16 13:00')),
-  'AIM Exam': Number(new Date('2023-10-31 13:00')),
-  'Embryo, Anatomy, Histology Exam': Number(new Date('2023-11-20 13:00')),
-  'FCP Written Exam': Number(new Date('2023-12-07 13:00')),
-  'FMS Exam 3': Number(new Date('2023-12-08 13:00')),
-  'Final Cumulative FNS Exam': Number(new Date('2023-12-12 13:00')),
+const EXAMS: {[index: string]: Date} = {
+  'Anatomy Midterm':new Date('2023-09-26 12:00:00'),
+  'FMS Exam 2':new Date('2023-10-16 12:00:00'),
+  'AIM Exam':new Date('2023-10-31 12:00:00'),
+  'Embryo, Anatomy, Histology Exam':new Date('2023-11-20 12:00:00'),
+  'FCP Written Exam':new Date('2023-12-07 12:00:00'),
+  'FMS Exam 3':new Date('2023-12-08 12:00:00'),
+  'Final Cumulative FNS Exam':new Date('2023-12-12 12:00:00'),
 }
 
 const EASTER_EGGS: string[] = 
@@ -92,7 +94,7 @@ const Wrapper = styled.section`
 
 const PARTICLE_PRESETS: string[] = Object.keys(configs);
 
-const PERCENT_POINT: number = Math.floor(getPercentDoctor(Number(new Date())));
+const PERCENT_POINT: number = Math.floor(TEST_DATE ? getPercentDoctor(Number(new Date(TEST_DATE))) : getPercentDoctor(Number(new Date())));
 
 const PARTICLE_MAP: {[key: number]: string} = {
   ...PARTICLE_PRESETS,
@@ -130,24 +132,23 @@ function renderDoctorText(currentDate: number): string {
 }
 
 function renderDetails(currentDate: number): string {
-  const randomNum: number = Math.floor(Math.random() * 1000);
+  const randomNum: number = Math.floor(Math.random() * 3000);
 
   if(EASTER_EGGS[randomNum]) {
     return EASTER_EGGS[randomNum];
   }
 
-
   let closestExam: string = '';
-  let closestExamDate: number = Infinity;
+  let closestExamDate: Date = new Date('3000-01-01');
 
   for(const exam in EXAMS) {
-    if(EXAMS[exam] >= currentDate && EXAMS[exam] < closestExamDate) {
+    if((dateFns.isAfter(dateFns.startOfDay(EXAMS[exam]), dateFns.startOfDay(currentDate)) || dateFns.isEqual(dateFns.startOfDay(EXAMS[exam]), dateFns.startOfDay(currentDate)) ) && dateFns.isBefore(dateFns.startOfDay(EXAMS[exam]), dateFns.startOfDay(closestExamDate))) {
       closestExam = exam;
-      closestExamDate = EXAMS[exam] - currentDate;
+      closestExamDate = EXAMS[exam];
     }
   }
-
-  const daysUntilExam: number = Math.floor(closestExamDate / 86400000);
+  console.log('start', dateFns.startOfDay(closestExamDate), 'current', dateFns.startOfDay(currentDate));
+  const daysUntilExam: number = dateFns.differenceInDays(dateFns.startOfDay(closestExamDate), dateFns.startOfDay(currentDate));
 
   if(daysUntilExam === 1) {
     return `Good luck on your ${closestExam} tomorrow!`;
@@ -161,7 +162,7 @@ function renderDetails(currentDate: number): string {
     return `No more exams... for now.`;
   }
   
-  return `${closestExam} in ${Math.floor(closestExamDate / 86400000)} days!`;
+  return `${closestExam} in ${Math.floor(daysUntilExam)} days!`;
 }
 
 function renderText(currentDate: number, showDetails: boolean): string {
@@ -177,14 +178,14 @@ function App() {
   const particlesLoaded = useCallback(async (container: Container | undefined) => {
   }, []);
 
-  const [currentDate, setCurrentDate] = useState(Number(new Date()));
+  const [currentDate, setCurrentDate] = useState(Number(TEST_DATE ? new Date(TEST_DATE) : new Date()));
   const [shakeDuration, setShakeDuration] = useState(calculateShakeDuration(currentDate));
   const [showDetails, setShowDetails] = useState(false);
 
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentDate(Number(new Date()));
+      setCurrentDate(Number(TEST_DATE ? new Date(TEST_DATE) : new Date()));
       setShakeDuration(calculateShakeDuration(currentDate));
     }, 10000);
     return () => clearInterval(interval);
