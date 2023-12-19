@@ -18,13 +18,15 @@ const START_TIME = Number(new Date('2023-07-17'));
 const TIME_TO_GRADUATION = GRAD_TIME - START_TIME;
 
 const EXAMS: {[index: string]: Date} = {
-  'Anatomy Midterm':new Date('2023-09-26 12:00:00'),
-  'FMS Exam 2':new Date('2023-10-16 12:00:00'),
-  'AIM Exam':new Date('2023-10-31 12:00:00'),
-  'Embryo, Anatomy, Histology Exam':new Date('2023-11-20 12:00:00'),
-  'FCP Written Exam':new Date('2023-12-07 12:00:00'),
-  'FMS Exam 3':new Date('2023-12-08 12:00:00'),
-  'Final Cumulative FNS Exam':new Date('2023-12-12 12:00:00'),
+  'Pulmonology Exam':new Date('2024-01-29 12:00:00'),
+  'Cardiology Exam':new Date('2024-02-26 12:00:00'),
+  'Renal Exam':new Date('2024-03-25 12:00:00'),
+  'GI Exam':new Date('2024-04-15 12:00:00'),
+  'AIM Final':new Date('2024-04-22 12:00:00'),
+  'Endo Exam':new Date('2024-05-03 12:00:00'),
+  'Repro Exam':new Date('2024-05-24 12:00:00'),
+  'FCP Final':new Date('2024-05-28 12:00:00'),
+  'Cumulative M1 Final':new Date('2024-05-31 12:00:00')
 }
 
 const EASTER_EGGS: string[] = 
@@ -158,8 +160,8 @@ function renderDetails(currentDate: number): string {
     return `Good luck on your ${closestExam} today!`;
   }
 
-  if(daysUntilExam === Infinity) {
-    return `No more exams... for now.`;
+  if(daysUntilExam === Infinity || daysUntilExam > 30) {
+    return `No exams anytime soon, congratulations!`;
   }
   
   return `${closestExam} in ${Math.floor(daysUntilExam)} days!`;
