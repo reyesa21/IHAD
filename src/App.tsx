@@ -18,15 +18,13 @@ const START_TIME = Number(new Date('2023-07-17'));
 const TIME_TO_GRADUATION = GRAD_TIME - START_TIME;
 
 const EXAMS: {[index: string]: Date} = {
-  'Pulmonology Exam':new Date('2024-01-29 12:00:00'),
-  'Cardiology Exam':new Date('2024-02-26 12:00:00'),
-  'Renal Exam':new Date('2024-03-25 12:00:00'),
-  'GI Exam':new Date('2024-04-15 12:00:00'),
-  'AIM Final':new Date('2024-04-22 12:00:00'),
-  'Endo Exam':new Date('2024-05-03 12:00:00'),
-  'Repro Exam':new Date('2024-05-24 12:00:00'),
-  'FCP Final':new Date('2024-05-28 12:00:00'),
-  'Cumulative M1 Final':new Date('2024-05-31 12:00:00')
+  'Hemetology/Oncology Exam':new Date('2024-08-19 12:00:00'),
+  'AIM 3 Final Exam':new Date('2024-09-13 12:00:00'),
+  'MSS Exam':new Date('2024-09-23 12:00:00'),
+  'Neuro Midterm':new Date('2024-10-14 12:00:00'),
+  'Neuro Final Exam':new Date('2024-11-08 12:00:00'),
+  'Psych Final':new Date('2024-12-11 12:00:00'),
+  'M2 Fall Semester Final Exam':new Date('2024-12-16 12:00:00'),
 }
 
 const EASTER_EGGS: string[] = 
@@ -42,19 +40,20 @@ let scheme = new ColorScheme;
 scheme.from_hue(Math.random() * 360)
     .scheme('triade')
     .distance(0.5)
-    .variation('light');
+    .variation('pastel');
 
 let colors = scheme.colors();
 
 
 
-const getRandomColor = () => {
-  return `#${colors[Math.floor(Math.random() * colors.length)]}`;
+const getRandomColor = (index: number) => {
+  return `#${colors[index]}`;
 }
 
-const DOCTOR_BACKGROUND_COLOR: string = getRandomColor();
-const DOCTOR_TEXT_COLOR: string = getRandomColor();
-const PAGE_BACKGROUND_COLOR: string = getRandomColor();
+const idx = Math.floor(Math.random() * (colors.length - 2));
+const DOCTOR_BACKGROUND_COLOR: string = getRandomColor(idx);
+const DOCTOR_TEXT_COLOR: string = getRandomColor(idx + 1);
+const PAGE_BACKGROUND_COLOR: string = getRandomColor(idx + 2);
 
 const shakeAnimation = keyframes`
   0% { transform: rotate(2deg); }
@@ -149,7 +148,6 @@ function renderDetails(currentDate: number): string {
       closestExamDate = EXAMS[exam];
     }
   }
-  console.log('start', dateFns.startOfDay(closestExamDate), 'current', dateFns.startOfDay(currentDate));
   const daysUntilExam: number = dateFns.differenceInDays(dateFns.startOfDay(closestExamDate), dateFns.startOfDay(currentDate));
 
   if(daysUntilExam === 1) {
