@@ -136,7 +136,6 @@ const Cat = styled.section`
 
 
 const PARTICLE_PRESETS: string[] = Object.keys(configs);
-console.log('ppar', PARTICLE_PRESETS)
 const PERCENT_POINT: number = Math.floor(TEST_DATE ? getPercentDoctor(Number(new Date(TEST_DATE))) : getPercentDoctor(Number(new Date())));
 
 const PARTICLE_MAP: {[key: number]: string} = {
@@ -231,7 +230,20 @@ function renderText(currentDate: number, showDetails: boolean, loadingPercent: n
   return showDetails ? renderDetails(currentDate) : renderDoctorText(currentDate, loadingPercent)
 }
 
+let catness = 0;
 
+function catGame(setIsCat: any) {
+  if(catness === 0) {
+    const catInterval = setTimeout(() => {
+      if(catness > 6) {
+        setIsCat(true);
+      } 
+      catness = 0;
+    }, 1000)
+  }
+
+  catness++;
+}
 function App() {
     // Here we initialize the tsParticle engine
   const particlesInit = useCallback(async (engine: Engine) => {
@@ -251,9 +263,7 @@ function App() {
   useEffect(() => {
     let adder = 0;
     let adderPrime = 1;
-    let catness = Math.floor(Math.random() * 200) === 69;
-    console.log('cat', catness)
-    setIsCat(catness);
+
     let loadingInterval = setInterval(() => {
       if(adder >= getPercentDoctor(currentDate)) {
         clearInterval(loadingInterval);
@@ -300,7 +310,7 @@ function App() {
 
 
     <Doctor
-      shakeduration={shakeDuration} showdetails={showDetails.toString()} onClick={() => setShowDetails(!showDetails)}
+      shakeduration={shakeDuration} showdetails={showDetails.toString()} onClick={() => {setShowDetails(!showDetails); catGame(setIsCat)}}
     >{renderText(currentDate, showDetails, loadingPercent, isCat)}
     {isCat ? 
     <Cat>
