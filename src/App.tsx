@@ -346,7 +346,7 @@ function App() {
       shakeduration={shakeDuration}
       showdetails={showDetails.toString()}
       onClick={() => {setShowDetails(!showDetails); catGame(setIsCat)}}
-      style={{gridRow: 3}}
+      style={{gridRow: 4}}
     >{renderText(currentDate, showDetails, loadingPercent, isCat)}
     {isCat ? 
     <Cat>
