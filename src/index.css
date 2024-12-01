@@ -1,8 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Cute+Font&family=Dancing+Script&family=Open+Sans:wght@300;400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sour+Gummy&family=Dancing+Script&family=Open+Sans:wght@300;400&display=swap');
 
 body {
   margin: 0;
-  font-family: 'Cute Font', cursive;
+  font-family: 'Sour Gummy', cursive;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   position: fixed;

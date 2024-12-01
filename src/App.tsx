@@ -80,11 +80,13 @@ const shakeAnimation = keyframes`
 
 const Doctor = styled.h1<{shakeduration: string, showdetails: string}>`
   user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
   font-size: 8vw;
   text-align: center;
   align-self: center;
   align-items: center;
-  width: 100%;
   border-radius: 100px;
   padding: 10px;
   margin: 50px;
@@ -100,7 +102,6 @@ const Doctor = styled.h1<{shakeduration: string, showdetails: string}>`
   }
   background-color: ${props => props.showdetails === 'false' ? DOCTOR_BACKGROUND_COLOR: DOCTOR_TEXT_COLOR};
   color: ${props => props.showdetails === 'false' ? DOCTOR_TEXT_COLOR : DOCTOR_BACKGROUND_COLOR};
-  width: 90%;
 `
 
 const slideInAnimation = keyframes`
@@ -249,8 +250,19 @@ function renderText(currentDate: number, showDetails: boolean, loadingPercent: n
 
 let catness = 0;
 
-function getStepText(currentDate: number) {
-  return `Step 1 in ${Math.floor(dateFns.differenceInDays(dateFns.startOfDay(STEP_DATE), dateFns.startOfDay(currentDate)))} days 😎`
+let stressEmojis = ['🫨', '🥲', '🥹', '🥺', '🥸', '🥴', '🥶', '🥳', '🥴', '🥶', '🫨', '🫥', '🤬', '🫠', '😵‍💫', '😶‍🌫️', '🙀', '🆘', '💪', '🤠']
+
+function getStepText(currentDate: number, showDetails: boolean, isCat: boolean) {
+  if(isCat) return '😻 Pet 1000 in 0 days 😻';
+
+  const getRandomStressEmoji = () => {
+    if(!showDetails) return '😶‍🌫️';
+    return stressEmojis[Math.floor(Math.random() * stressEmojis.length)]
+  }
+
+  const randomStressEmoji = getRandomStressEmoji();
+
+  return `${randomStressEmoji} Step 1 in ${Math.floor(dateFns.differenceInDays(dateFns.startOfDay(STEP_DATE), dateFns.startOfDay(currentDate)))} days ${randomStressEmoji}`
 }
 
 function catGame(setIsCat: any) {
@@ -334,7 +346,7 @@ function App() {
       shakeduration={shakeDuration}
       showdetails={showDetails.toString()}
       onClick={() => {setShowDetails(!showDetails); catGame(setIsCat)}}
-      style={{gridRow: 4}}
+      style={{gridRow: 3}}
     >{renderText(currentDate, showDetails, loadingPercent, isCat)}
     {isCat ? 
     <Cat>
@@ -351,13 +363,18 @@ function App() {
         showdetails={showDetails.toString()}
         style={{
           cursor: 'default', 
-          gridRow: 5, 
+          gridRow: 2, 
           opacity: showDetails ? 1 : 0, 
           backgroundColor: 'transparent',
           boxShadow: 'none',
+          transform: showDetails ? 'rotate(0deg) translateY(0%)' : 'rotate(0deg) translateY(-200%)',
+          animation: 'none',
+          transition: 'opacity 0.5s ease-out, transform 0.5s ease-out',
+          color: DOCTOR_TEXT_COLOR,
+          margin: '0px'
         }}
         >
-          {getStepText(currentDate)}
+          {getStepText(currentDate, showDetails, isCat)}
         </Doctor>
   </Wrapper>
     );
