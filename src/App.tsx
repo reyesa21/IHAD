@@ -7,7 +7,6 @@ import { tsParticles } from "tsparticles-engine";
 import configs from "tsparticles-demo-configs";
 import * as dateFns from 'date-fns';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
-
 import type { RefObject } from 'react';
 import type { Container, Engine } from "tsparticles-engine";
 
@@ -16,6 +15,8 @@ const TEST_DATE: string = '';
 const GRAD_TIME: number = Number(new Date('2027-05-07'));
 const START_TIME = Number(new Date('2023-07-17'));
 const TIME_TO_GRADUATION = GRAD_TIME - START_TIME;
+
+const STEP_DATE = new Date('2025-03-01');
 
 const EXAMS: {[index: string]: Date} = {
   'Hematology/Oncology Exam':new Date('2024-08-19 12:00:00'),
@@ -99,6 +100,20 @@ const Doctor = styled.h1<{shakeduration: string, showdetails: string}>`
   }
   background-color: ${props => props.showdetails === 'false' ? DOCTOR_BACKGROUND_COLOR: DOCTOR_TEXT_COLOR};
   color: ${props => props.showdetails === 'false' ? DOCTOR_TEXT_COLOR : DOCTOR_BACKGROUND_COLOR};
+  width: 90%;
+`
+
+const slideInAnimation = keyframes`
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+`
+
+const AnimatedDiv = styled.div`
+  animation: ${slideInAnimation} 0.5s ease-out;
 `
 
 const Bar = styled.h1<{showdetails: string, loadingpercent: string}>`
@@ -118,9 +133,11 @@ const Bar = styled.h1<{showdetails: string, loadingpercent: string}>`
 const Wrapper = styled.section`
   background: ${PAGE_BACKGROUND_COLOR};
   height: 100vh;
-  display: flex;
   width: 100vw;
   overflow: hidden;
+  display: grid;
+  grid-template-rows: repeat(7, 1fr);
+  gap: 100px;
 `
 
 
@@ -232,6 +249,10 @@ function renderText(currentDate: number, showDetails: boolean, loadingPercent: n
 
 let catness = 0;
 
+function getStepText(currentDate: number) {
+  return `Step 1 in ${Math.floor(dateFns.differenceInDays(dateFns.startOfDay(STEP_DATE), dateFns.startOfDay(currentDate)))} days 😎`
+}
+
 function catGame(setIsCat: any) {
   if(catness === 0) {
     const catInterval = setTimeout(() => {
@@ -310,7 +331,10 @@ function App() {
 
 
     <Doctor
-      shakeduration={shakeDuration} showdetails={showDetails.toString()} onClick={() => {setShowDetails(!showDetails); catGame(setIsCat)}}
+      shakeduration={shakeDuration}
+      showdetails={showDetails.toString()}
+      onClick={() => {setShowDetails(!showDetails); catGame(setIsCat)}}
+      style={{gridRow: 4}}
     >{renderText(currentDate, showDetails, loadingPercent, isCat)}
     {isCat ? 
     <Cat>
@@ -321,6 +345,20 @@ function App() {
     <script src="https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.mjs" type="module"></script> 
     </Bar> */}
     </Doctor>
+
+        <Doctor
+        shakeduration={shakeDuration}
+        showdetails={showDetails.toString()}
+        style={{
+          cursor: 'default', 
+          gridRow: 5, 
+          opacity: showDetails ? 1 : 0, 
+          backgroundColor: 'transparent',
+          boxShadow: 'none',
+        }}
+        >
+          {getStepText(currentDate)}
+        </Doctor>
   </Wrapper>
     );
     }
