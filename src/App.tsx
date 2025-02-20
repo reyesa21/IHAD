@@ -16,7 +16,7 @@ const GRAD_TIME: number = Number(new Date('2027-05-07'));
 const START_TIME = Number(new Date('2023-07-17'));
 const TIME_TO_GRADUATION = GRAD_TIME - START_TIME;
 
-const STEP_DATE = new Date('2025-03-01');
+const STEP_DATE = new Date('2025-03-09');
 
 const EXAMS: {[index: string]: Date} = {
   'Hematology/Oncology Exam':new Date('2024-08-19 12:00:00'),
@@ -36,7 +36,7 @@ const EASTER_EGGS: string[] =
 ]
   
 let ColorScheme = require('color-scheme');
-let scheme = new ColorScheme;
+let scheme = new ColorScheme();
 
 scheme.from_hue(Math.random() * 360)
     .scheme('triade')
@@ -223,6 +223,12 @@ function renderDetails(currentDate: number): string {
     }
   }
   const daysUntilExam: number = dateFns.differenceInDays(dateFns.startOfDay(closestExamDate), dateFns.startOfDay(currentDate));
+  const daysUntilStep = Math.floor(dateFns.differenceInDays(dateFns.startOfDay(STEP_DATE), dateFns.startOfDay(currentDate)));
+
+
+  if(daysUntilStep > 0) {
+    return getStepText(currentDate, true)
+  }
 
   if(daysUntilExam === 1) {
     return `Good luck on your ${closestExam} tomorrow!`;
@@ -252,8 +258,7 @@ let catness = 0;
 
 let stressEmojis = ['🫨', '🥲', '🥹', '🥺', '🥸', '🥴', '🥶', '🥳', '🥴', '🥶', '🫨', '🫥', '🤬', '🫠', '😵‍💫', '😶‍🌫️', '🙀', '🆘', '💪', '🤠']
 
-function getStepText(currentDate: number, showDetails: boolean, isCat: boolean) {
-  if(isCat) return '😻 Pet 1000 in 0 days 😻';
+function getStepText(currentDate: number, showDetails: boolean) {
 
   const getRandomStressEmoji = () => {
     if(!showDetails) return '😶‍🌫️';
@@ -262,7 +267,8 @@ function getStepText(currentDate: number, showDetails: boolean, isCat: boolean) 
 
   const randomStressEmoji = getRandomStressEmoji();
 
-  return `${randomStressEmoji} Step 1 in ${Math.floor(dateFns.differenceInDays(dateFns.startOfDay(STEP_DATE), dateFns.startOfDay(currentDate)))} days ${randomStressEmoji}`
+  const daysUntil = Math.floor(dateFns.differenceInDays(dateFns.startOfDay(STEP_DATE), dateFns.startOfDay(currentDate)));
+  return `${randomStressEmoji} Step 1 in ${daysUntil} ${daysUntil > 1 ? 'days' : 'day'} ${randomStressEmoji}`
 }
 
 function catGame(setIsCat: any) {
@@ -330,7 +336,17 @@ function App() {
     <Wrapper>
 
 
-    <Particles
+
+
+    {Math.floor(dateFns.differenceInDays(dateFns.startOfDay(STEP_DATE), dateFns.startOfDay(currentDate))) === 0
+    ?
+     (<div
+      style={{width: '100vw', height: '100vh', backgroundColor: 'black', color: 'white', fontSize: '12vw', textAlign: 'center', alignContent: 'center'}}
+     > Good luck today! You got this!! </div>)
+    : (
+    <>
+
+<Particles
     init={particlesInit}
     loaded={particlesLoaded}
     options={{
@@ -340,7 +356,6 @@ function App() {
       },
     }}
     />
-
 
     <Doctor
       shakeduration={shakeDuration}
@@ -374,8 +389,9 @@ function App() {
           margin: '0px'
         }}
         >
-          {getStepText(currentDate, showDetails, isCat)}
         </Doctor>
+        </>)
+         }
   </Wrapper>
     );
     }
