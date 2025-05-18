@@ -18,15 +18,59 @@ const TIME_TO_GRADUATION = GRAD_TIME - START_TIME;
 
 const STEP_DATE = new Date('2025-03-09');
 
-const EXAMS: {[index: string]: Date} = {
-  'Hematology/Oncology Exam':new Date('2024-08-19 12:00:00'),
-  'AIM 3 Final Exam':new Date('2024-09-13 12:00:00'),
-  'MSS Exam':new Date('2024-09-23 12:00:00'),
-  'Neuro Midterm':new Date('2024-10-14 12:00:00'),
-  'Neuro Final Exam':new Date('2024-11-08 12:00:00'),
-  'Psych Final':new Date('2024-12-11 12:00:00'),
-  'M2 Fall Semester Final Exam':new Date('2024-12-16 12:00:00'),
-}
+
+
+const ROTATIONS: {[index: string]: any}  = {
+  'Surgery': {
+    start: new Date('2025-03-31'),
+    end: new Date('2025-05-23'),
+  },
+  'HIV Wellness': {
+    start: new Date('2025-05-26'),
+    end: new Date('2025-06-07'),
+  },
+  'Self-Study': {
+    start: new Date('2025-06-08'),
+    end: new Date('2025-06-22'),
+  },
+  'Rheumatology': {
+    start: new Date('2025-06-23'),
+    end: new Date('2025-07-05'),
+  },
+  'Neurology': {
+    start: new Date('2025-07-07'),
+    end: new Date('2025-07-19'),
+  },
+  'Internal Medicine': {
+    start: new Date('2025-07-21'),
+    end: new Date('2025-09-12'),
+  },
+  'Career Week': {
+    start: new Date('2025-09-15'),
+    end: new Date('2025-09-28'),
+  },
+  'Ob/Gyn': {
+    start: new Date('2025-09-29'),
+    end: new Date('2025-11-09'),
+  },
+  'Peds': {
+    start: new Date('2025-11-10'),
+    end: new Date('2025-12-21'),
+  },
+  'Winter Break': {
+    start: new Date('2025-12-22'),
+    end: new Date('2026-01-04'),
+  },
+  'Psychiatry': {
+    start: new Date('2026-01-05'),
+    end: new Date('2026-02-15'),
+  },
+  'Family Medicine': {
+    start: new Date('2026-02-16'),
+    end: new Date('2026-03-23'),
+  },
+};
+
 
 const EASTER_EGGS: string[] = 
 [
@@ -206,6 +250,24 @@ function renderCatText(currentDate: number, loadingPercent: number): string {
   return `${currentDate - START_TIME >= TIME_TO_GRADUATION ? 'Dr.' : ''} Hayley is ${getPercentDoctor(currentDate).toFixed(2)}% Cat!`
 }
 
+function getCurrentRotation() {
+  const now = new Date();
+
+  for (const [key, { start, end }] of Object.entries(ROTATIONS)) {
+    if (now >= start && now <= end) {
+      const endDateStr = end.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+      return `Currently in ${key} until ${endDateStr}!`;
+    }
+  }
+
+  return "Not currently in any scheduled rotation!";
+}
+
+
 function renderDetails(currentDate: number): string {
   const randomNum: number = Math.floor(Math.random() * 3000);
 
@@ -213,37 +275,9 @@ function renderDetails(currentDate: number): string {
     return EASTER_EGGS[randomNum];
   }
 
-  let closestExam: string = '';
-  let closestExamDate: Date = new Date('3000-01-01');
-
-  for(const exam in EXAMS) {
-    if((dateFns.isAfter(dateFns.startOfDay(EXAMS[exam]), dateFns.startOfDay(currentDate)) || dateFns.isEqual(dateFns.startOfDay(EXAMS[exam]), dateFns.startOfDay(currentDate)) ) && dateFns.isBefore(dateFns.startOfDay(EXAMS[exam]), dateFns.startOfDay(closestExamDate))) {
-      closestExam = exam;
-      closestExamDate = EXAMS[exam];
-    }
-  }
-  const daysUntilExam: number = dateFns.differenceInDays(dateFns.startOfDay(closestExamDate), dateFns.startOfDay(currentDate));
-  const daysUntilStep = Math.floor(dateFns.differenceInDays(dateFns.startOfDay(STEP_DATE), dateFns.startOfDay(currentDate)));
-
-
-  if(daysUntilStep > 0) {
-    return getStepText(currentDate, true)
-  }
-
-  if(daysUntilExam === 1) {
-    return `Good luck on your ${closestExam} tomorrow!`;
-  }
-
-  if(daysUntilExam < 1) {
-    return `Good luck on your ${closestExam} today!`;
-  }
-
-  if(daysUntilExam === Infinity || daysUntilExam > 30) {
-    return `No exams anytime soon, congratulations!`;
-  }
-  
-  return `${closestExam} in ${Math.floor(daysUntilExam)} days!`;
+  return getCurrentRotation()
 }
+
 
 function renderMeow() {
   return 'meow'
