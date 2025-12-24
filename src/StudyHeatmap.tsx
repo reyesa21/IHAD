@@ -34,29 +34,13 @@ const CELEBRATION_COLORS = [
   '#5f27cd', '#00d2d3', '#ff9f43', '#10ac84', '#ee5a24'
 ];
 
-const popIn = keyframes`
-  0% { transform: scale(0) rotate(-10deg); opacity: 0; }
-  50% { transform: scale(1.3) rotate(5deg); }
-  100% { transform: scale(1) rotate(0deg); opacity: 1; }
-`;
-
 const floatUp = keyframes`
   0% { transform: translateY(0) scale(1); opacity: 1; }
-  100% { transform: translateY(-60px) scale(1.5); opacity: 0; }
+  100% { transform: translateY(-100px) scale(2); opacity: 0; }
 `;
 
-const pulse = keyframes`
-  0% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1); }
-`;
-
-const shimmer = keyframes`
-  0% { background-position: -200% center; }
-  100% { background-position: 200% center; }
-`;
-
-const HeatmapContainer = styled.div`
+// Small corner version
+const HeatmapContainerSmall = styled.div`
   position: fixed;
   bottom: 20px;
   right: 20px;
@@ -64,13 +48,43 @@ const HeatmapContainer = styled.div`
   border-radius: 12px;
   padding: 15px;
   z-index: 1000;
-  max-width: 90vw;
+  max-width: 320px;
   backdrop-filter: blur(10px);
   user-select: none;
   -webkit-user-select: none;
 `;
 
-const HeatmapTitle = styled.div<{ taps: number }>`
+// Full screen expanded version
+const HeatmapContainerExpanded = styled.div`
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.95);
+  border-radius: 24px;
+  padding: 40px;
+  z-index: 1000;
+  width: 90vw;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  backdrop-filter: blur(20px);
+  user-select: none;
+  -webkit-user-select: none;
+  box-shadow: 0 0 100px rgba(0, 0, 0, 0.8);
+`;
+
+const Overlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 999;
+`;
+
+const HeatmapTitleSmall = styled.div<{ taps: number }>`
   color: #fff;
   font-size: 12px;
   margin-bottom: 10px;
@@ -90,17 +104,53 @@ const HeatmapTitle = styled.div<{ taps: number }>`
   }
 `;
 
-const HeatmapGrid = styled.div`
+const HeatmapTitleExpanded = styled.div`
+  color: #fff;
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 30px;
+  text-align: center;
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+`;
+
+const HeatmapGridSmall = styled.div`
   display: grid;
   grid-template-columns: repeat(26, 10px);
   grid-template-rows: repeat(7, 10px);
   gap: 2px;
   grid-auto-flow: column;
   overflow-x: auto;
-  max-width: 100%;
 `;
 
-const DayCell = styled.div<{ intensity: number; isfuture: string; isselected: string }>`
+const HeatmapGridExpanded = styled.div`
+  display: grid;
+  grid-template-columns: repeat(26, 1fr);
+  grid-template-rows: repeat(7, 1fr);
+  gap: 6px;
+  grid-auto-flow: column;
+  width: 100%;
+  margin: 0 auto;
+`;
+
+const DayCellSmall = styled.div<{ intensity: number; isfuture: string }>`
   width: 10px;
   height: 10px;
   border-radius: 2px;
@@ -112,21 +162,38 @@ const DayCell = styled.div<{ intensity: number; isfuture: string; isselected: st
     if (props.intensity <= 6) return '#26a641';
     return '#39d353';
   }};
+`;
+
+const DayCellExpanded = styled.div<{ intensity: number; isfuture: string; isselected: string }>`
+  aspect-ratio: 1;
+  border-radius: 6px;
+  background-color: ${props => {
+    if (props.isfuture === 'true') return '#1a1a1a';
+    if (props.intensity === 0) return '#2d2d2d';
+    if (props.intensity <= 2) return '#0e4429';
+    if (props.intensity <= 4) return '#006d32';
+    if (props.intensity <= 6) return '#26a641';
+    return '#39d353';
+  }};
   cursor: pointer;
-  border: ${props => props.isselected === 'true' ? '1px solid #fff' : 'none'};
+  border: ${props => props.isselected === 'true' ? '3px solid #fff' : 'none'};
   box-sizing: border-box;
+  transition: transform 0.1s;
+
+  &:hover {
+    transform: scale(1.15);
+  }
 
   &:active {
     opacity: 0.7;
   }
 `;
 
-const SecretPanel = styled.div<{ show: string }>`
-  display: ${props => props.show === 'true' ? 'block' : 'none'};
-  margin-top: 15px;
-  padding: 15px;
+const SecretPanel = styled.div`
+  margin-top: 40px;
+  padding: 40px;
   background: rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  border-radius: 24px;
   text-align: center;
   position: relative;
   overflow: hidden;
@@ -134,32 +201,34 @@ const SecretPanel = styled.div<{ show: string }>`
 
 const Question = styled.div`
   color: #fff;
-  font-size: 14px;
-  margin-bottom: 12px;
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 15px;
 `;
 
 const DateDisplay = styled.div`
-  color: #888;
-  font-size: 11px;
-  margin-bottom: 8px;
+  color: #aaa;
+  font-size: 20px;
+  margin-bottom: 30px;
 `;
 
 const HourButton = styled.button<{ hourcolor: string }>`
-  width: 80px;
-  height: 80px;
+  width: 180px;
+  height: 180px;
   border-radius: 50%;
-  border: 3px solid ${props => props.hourcolor};
-  background: linear-gradient(135deg, ${props => props.hourcolor}33, ${props => props.hourcolor}11);
+  border: 6px solid ${props => props.hourcolor};
+  background: linear-gradient(135deg, ${props => props.hourcolor}44, ${props => props.hourcolor}11);
   color: #fff;
-  font-size: 28px;
+  font-size: 72px;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.2s;
   position: relative;
+  box-shadow: 0 0 50px ${props => props.hourcolor}55;
 
   &:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 20px ${props => props.hourcolor}66;
+    transform: scale(1.1);
+    box-shadow: 0 0 80px ${props => props.hourcolor}99;
   }
 
   &:active {
@@ -169,40 +238,41 @@ const HourButton = styled.button<{ hourcolor: string }>`
 
 const HourLabel = styled.div`
   color: #888;
-  font-size: 10px;
-  margin-top: 8px;
+  font-size: 18px;
+  margin-top: 25px;
 `;
 
 const CelebrationText = styled.div<{ color: string; show: string }>`
   position: absolute;
-  top: 10px;
+  top: 30px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 16px;
+  font-size: 40px;
   font-weight: bold;
   color: ${props => props.color};
   opacity: ${props => props.show === 'true' ? 1 : 0};
-  animation: ${props => props.show === 'true' ? css`${floatUp} 1s ease-out forwards` : 'none'};
-  text-shadow: 0 0 10px ${props => props.color};
+  animation: ${props => props.show === 'true' ? css`${floatUp} 1.2s ease-out forwards` : 'none'};
+  text-shadow: 0 0 30px ${props => props.color};
   pointer-events: none;
   white-space: nowrap;
 `;
 
-const Sparkle = styled.div<{ x: number; y: number; color: string; delay: number }>`
+const Sparkle = styled.div<{ x: number; y: number; color: string; delay: number; size: number }>`
   position: absolute;
-  width: 8px;
-  height: 8px;
+  width: ${props => props.size}px;
+  height: ${props => props.size}px;
   background: ${props => props.color};
   border-radius: 50%;
   left: ${props => props.x}%;
   top: ${props => props.y}%;
-  animation: ${floatUp} 0.8s ease-out forwards;
+  animation: ${floatUp} 1s ease-out forwards;
   animation-delay: ${props => props.delay}ms;
   opacity: 0;
   pointer-events: none;
+  box-shadow: 0 0 15px ${props => props.color};
 `;
 
-const Legend = styled.div`
+const LegendSmall = styled.div`
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -212,18 +282,43 @@ const Legend = styled.div`
   color: #666;
 `;
 
-const LegendCell = styled.div<{ color: string }>`
+const LegendExpanded = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 25px;
+  font-size: 16px;
+  color: #888;
+`;
+
+const LegendCellSmall = styled.div<{ color: string }>`
   width: 10px;
   height: 10px;
   border-radius: 2px;
   background-color: ${props => props.color};
 `;
 
-const TotalHours = styled.div`
+const LegendCellExpanded = styled.div<{ color: string }>`
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  background-color: ${props => props.color};
+`;
+
+const TotalHoursSmall = styled.div`
   color: #888;
   font-size: 11px;
   margin-top: 5px;
   text-align: center;
+`;
+
+const TotalHoursExpanded = styled.div`
+  color: #fff;
+  font-size: 24px;
+  margin-top: 25px;
+  text-align: center;
+  font-weight: bold;
 `;
 
 const StudyHeatmap: React.FC = () => {
@@ -233,7 +328,7 @@ const StudyHeatmap: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [tapCount, setTapCount] = useState(0);
   const [celebration, setCelebration] = useState({ show: false, text: '', color: '' });
-  const [sparkles, setSparkles] = useState<Array<{ id: number; x: number; y: number; color: string; delay: number }>>([]);
+  const [sparkles, setSparkles] = useState<Array<{ id: number; x: number; y: number; color: string; delay: number; size: number }>>([]);
   const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const sparkleIdRef = useRef(0);
 
@@ -272,7 +367,7 @@ const StudyHeatmap: React.FC = () => {
     tapTimeoutRef.current = setTimeout(() => setTapCount(0), SECRET_TAP_WINDOW);
 
     if (newTapCount >= SECRET_TAP_COUNT) {
-      setShowSecret(!showSecret);
+      setShowSecret(true);
       setTapCount(0);
       if (tapTimeoutRef.current) clearTimeout(tapTimeoutRef.current);
     }
@@ -285,26 +380,25 @@ const StudyHeatmap: React.FC = () => {
 
     setCelebration({ show: true, text: message, color });
 
-    // Create sparkles
-    const newSparkles = Array.from({ length: 8 }, (_, i) => ({
+    const newSparkles = Array.from({ length: 15 }, (_, i) => ({
       id: sparkleIdRef.current++,
-      x: 20 + Math.random() * 60,
-      y: 30 + Math.random() * 40,
+      x: 10 + Math.random() * 80,
+      y: 15 + Math.random() * 60,
       color: CELEBRATION_COLORS[Math.floor(Math.random() * CELEBRATION_COLORS.length)],
-      delay: i * 50
+      delay: i * 30,
+      size: 12 + Math.random() * 20
     }));
     setSparkles(newSparkles);
 
-    // Clear celebration after animation
     setTimeout(() => {
       setCelebration({ show: false, text: '', color: '' });
       setSparkles([]);
-    }, 1000);
+    }, 1200);
   };
 
   const handleHourClick = async () => {
     const currentHours = studyData[selectedDate] || 0;
-    const newHours = (currentHours + 1) % 10; // Cycle 0-9
+    const newHours = (currentHours + 1) % 10;
 
     const newData = {
       ...studyData,
@@ -331,76 +425,123 @@ const StudyHeatmap: React.FC = () => {
 
   if (loading) {
     return (
-      <HeatmapContainer>
-        <HeatmapTitle taps={0}>Loading...</HeatmapTitle>
-      </HeatmapContainer>
+      <HeatmapContainerSmall>
+        <HeatmapTitleSmall taps={0}>Loading...</HeatmapTitleSmall>
+      </HeatmapContainerSmall>
     );
   }
 
-  return (
-    <HeatmapContainer>
-      <HeatmapTitle onClick={handleTitleTap} taps={tapCount}>
-        Study Tracker
-      </HeatmapTitle>
+  // Expanded full-screen view
+  if (showSecret) {
+    return (
+      <>
+        <Overlay onClick={() => setShowSecret(false)} />
+        <HeatmapContainerExpanded>
+          <CloseButton onClick={() => setShowSecret(false)}>&times;</CloseButton>
 
-      <HeatmapGrid>
+          <HeatmapTitleExpanded>Study Tracker</HeatmapTitleExpanded>
+
+          <HeatmapGridExpanded>
+            {dates.map((date, i) => {
+              const dateStr = dateFns.format(date, 'yyyy-MM-dd');
+              const hours = studyData[dateStr] || 0;
+              const isFuture = dateFns.isFuture(dateFns.startOfDay(date)) && !dateFns.isToday(date);
+
+              return (
+                <DayCellExpanded
+                  key={i}
+                  intensity={hours}
+                  isfuture={isFuture.toString()}
+                  isselected={(dateStr === selectedDate).toString()}
+                  onClick={() => handleCellClick(date)}
+                  title={`${dateFns.format(date, 'MMM d')}: ${hours}h`}
+                />
+              );
+            })}
+          </HeatmapGridExpanded>
+
+          <LegendExpanded>
+            <span>Less</span>
+            <LegendCellExpanded color="#2d2d2d" />
+            <LegendCellExpanded color="#0e4429" />
+            <LegendCellExpanded color="#006d32" />
+            <LegendCellExpanded color="#26a641" />
+            <LegendCellExpanded color="#39d353" />
+            <span>More</span>
+          </LegendExpanded>
+
+          <TotalHoursExpanded>
+            Total: {totalHours} hours studied
+          </TotalHoursExpanded>
+
+          <SecretPanel>
+            <CelebrationText show={celebration.show.toString()} color={celebration.color}>
+              {celebration.text}
+            </CelebrationText>
+
+            {sparkles.map(sparkle => (
+              <Sparkle
+                key={sparkle.id}
+                x={sparkle.x}
+                y={sparkle.y}
+                color={sparkle.color}
+                delay={sparkle.delay}
+                size={sparkle.size}
+              />
+            ))}
+
+            <Question>Did you study today?</Question>
+            <DateDisplay>{dateFns.format(new Date(selectedDate), 'EEEE, MMMM d')}</DateDisplay>
+
+            <HourButton hourcolor={currentColor} onClick={handleHourClick}>
+              {currentHours}
+            </HourButton>
+
+            <HourLabel>tap to add hours</HourLabel>
+          </SecretPanel>
+        </HeatmapContainerExpanded>
+      </>
+    );
+  }
+
+  // Small corner view
+  return (
+    <HeatmapContainerSmall>
+      <HeatmapTitleSmall onClick={handleTitleTap} taps={tapCount}>
+        Study Tracker
+      </HeatmapTitleSmall>
+
+      <HeatmapGridSmall>
         {dates.map((date, i) => {
           const dateStr = dateFns.format(date, 'yyyy-MM-dd');
           const hours = studyData[dateStr] || 0;
           const isFuture = dateFns.isFuture(dateFns.startOfDay(date)) && !dateFns.isToday(date);
 
           return (
-            <DayCell
+            <DayCellSmall
               key={i}
               intensity={hours}
               isfuture={isFuture.toString()}
-              isselected={(dateStr === selectedDate && showSecret).toString()}
-              onClick={() => handleCellClick(date)}
               title={`${dateFns.format(date, 'MMM d')}: ${hours}h`}
             />
           );
         })}
-      </HeatmapGrid>
+      </HeatmapGridSmall>
 
-      <Legend>
+      <LegendSmall>
         <span>Less</span>
-        <LegendCell color="#2d2d2d" />
-        <LegendCell color="#0e4429" />
-        <LegendCell color="#006d32" />
-        <LegendCell color="#26a641" />
-        <LegendCell color="#39d353" />
+        <LegendCellSmall color="#2d2d2d" />
+        <LegendCellSmall color="#0e4429" />
+        <LegendCellSmall color="#006d32" />
+        <LegendCellSmall color="#26a641" />
+        <LegendCellSmall color="#39d353" />
         <span>More</span>
-      </Legend>
+      </LegendSmall>
 
-      <TotalHours>
+      <TotalHoursSmall>
         Total: {totalHours} hours studied
-      </TotalHours>
-
-      <SecretPanel show={showSecret.toString()}>
-        <CelebrationText show={celebration.show.toString()} color={celebration.color}>
-          {celebration.text}
-        </CelebrationText>
-
-        {sparkles.map(sparkle => (
-          <Sparkle
-            key={sparkle.id}
-            x={sparkle.x}
-            y={sparkle.y}
-            color={sparkle.color}
-            delay={sparkle.delay}
-          />
-        ))}
-
-        <Question>Did you study today?</Question>
-        <DateDisplay>{dateFns.format(new Date(selectedDate), 'EEEE, MMMM d')}</DateDisplay>
-
-        <HourButton hourcolor={currentColor} onClick={handleHourClick}>
-          {currentHours}
-        </HourButton>
-
-        <HourLabel>tap to add hours</HourLabel>
-      </SecretPanel>
-    </HeatmapContainer>
+      </TotalHoursSmall>
+    </HeatmapContainerSmall>
   );
 };
 
