@@ -17,6 +17,7 @@ const START_TIME = Number(new Date('2023-07-17'));
 const TIME_TO_GRADUATION = GRAD_TIME - START_TIME;
 
 const STEP_DATE = new Date('2025-03-09');
+const STEP_2_DATE = new Date('2027-05-08');
 
 
 
