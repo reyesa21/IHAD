@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes, css } from 'styled-components';
 import * as dateFns from 'date-fns';
 import { database } from './firebase';
 import { ref, onValue, set } from 'firebase/database';
@@ -8,11 +8,53 @@ const STEP_2_DATE = new Date('2027-05-08');
 
 // Secret knock pattern: tap 5 times within 2 seconds
 const SECRET_TAP_COUNT = 5;
-const SECRET_TAP_WINDOW = 2000; // 2 seconds
+const SECRET_TAP_WINDOW = 2000;
 
 interface StudyData {
-  [date: string]: number; // date string -> hours studied
+  [date: string]: number;
 }
+
+// Celebration messages for each hour level
+const CELEBRATIONS: { [key: number]: string[] } = {
+  0: ['Reset!', 'Starting fresh!', 'New day!'],
+  1: ['Nice start!', 'One hour!', 'Getting going!'],
+  2: ['Keep it up!', 'Two hours!', 'Warming up!'],
+  3: ['Awesome!', 'Three hours!', 'On a roll!'],
+  4: ['Amazing!', 'Four hours!', 'Crushing it!'],
+  5: ['Incredible!', 'Five hours!', 'Halfway to hero!'],
+  6: ['WOW!', 'Six hours!', 'Study machine!'],
+  7: ['Fantastic!', 'Seven hours!', 'Unstoppable!'],
+  8: ['LEGENDARY!', 'Eight hours!', 'Full day warrior!'],
+  9: ['SUPERHERO!', 'Nine hours!', 'Maximum power!'],
+};
+
+// Fun colors for celebrations
+const CELEBRATION_COLORS = [
+  '#ff6b6b', '#feca57', '#48dbfb', '#ff9ff3', '#54a0ff',
+  '#5f27cd', '#00d2d3', '#ff9f43', '#10ac84', '#ee5a24'
+];
+
+const popIn = keyframes`
+  0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+  50% { transform: scale(1.3) rotate(5deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+`;
+
+const floatUp = keyframes`
+  0% { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-60px) scale(1.5); opacity: 0; }
+`;
+
+const pulse = keyframes`
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+`;
+
+const shimmer = keyframes`
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+`;
 
 const HeatmapContainer = styled.div`
   position: fixed;
@@ -42,7 +84,6 @@ const HeatmapTitle = styled.div<{ taps: number }>`
     background: rgba(255, 255, 255, 0.1);
   }
 
-  /* Subtle hint that shows tap progress */
   &::after {
     content: '${props => props.taps > 0 && props.taps < SECRET_TAP_COUNT ? ' ' + '.'.repeat(props.taps) : ''}';
     color: #39d353;
@@ -80,60 +121,85 @@ const DayCell = styled.div<{ intensity: number; isfuture: string; isselected: st
   }
 `;
 
-const SecretInput = styled.div<{ show: string }>`
+const SecretPanel = styled.div<{ show: string }>`
   display: ${props => props.show === 'true' ? 'block' : 'none'};
-  margin-top: 12px;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-`;
-
-const InputRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-`;
-
-const Input = styled.input`
-  width: 70px;
-  padding: 8px;
-  border: none;
-  border-radius: 5px;
-  background: #333;
-  color: #fff;
-  font-size: 14px;
-
-  &:focus {
-    outline: 2px solid #26a641;
-  }
-`;
-
-const Button = styled.button`
-  padding: 8px 16px;
-  border: none;
-  border-radius: 5px;
-  background: #26a641;
-  color: #fff;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: bold;
-
-  &:hover, &:active {
-    background: #39d353;
-  }
-`;
-
-const DateLabel = styled.span`
-  color: #ccc;
-  font-size: 12px;
-`;
-
-const SecretIndicator = styled.div`
-  color: #ff69b4;
-  font-size: 10px;
+  margin-top: 15px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
   text-align: center;
+  position: relative;
+  overflow: hidden;
+`;
+
+const Question = styled.div`
+  color: #fff;
+  font-size: 14px;
+  margin-bottom: 12px;
+`;
+
+const DateDisplay = styled.div`
+  color: #888;
+  font-size: 11px;
+  margin-bottom: 8px;
+`;
+
+const HourButton = styled.button<{ hourcolor: string }>`
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 3px solid ${props => props.hourcolor};
+  background: linear-gradient(135deg, ${props => props.hourcolor}33, ${props => props.hourcolor}11);
+  color: #fff;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px ${props => props.hourcolor}66;
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+`;
+
+const HourLabel = styled.div`
+  color: #888;
+  font-size: 10px;
   margin-top: 8px;
+`;
+
+const CelebrationText = styled.div<{ color: string; show: string }>`
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 16px;
+  font-weight: bold;
+  color: ${props => props.color};
+  opacity: ${props => props.show === 'true' ? 1 : 0};
+  animation: ${props => props.show === 'true' ? css`${floatUp} 1s ease-out forwards` : 'none'};
+  text-shadow: 0 0 10px ${props => props.color};
+  pointer-events: none;
+  white-space: nowrap;
+`;
+
+const Sparkle = styled.div<{ x: number; y: number; color: string; delay: number }>`
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: ${props => props.color};
+  border-radius: 50%;
+  left: ${props => props.x}%;
+  top: ${props => props.y}%;
+  animation: ${floatUp} 0.8s ease-out forwards;
+  animation-delay: ${props => props.delay}ms;
+  opacity: 0;
+  pointer-events: none;
 `;
 
 const Legend = styled.div`
@@ -164,35 +230,29 @@ const StudyHeatmap: React.FC = () => {
   const [studyData, setStudyData] = useState<StudyData>({});
   const [showSecret, setShowSecret] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>(dateFns.format(new Date(), 'yyyy-MM-dd'));
-  const [hoursInput, setHoursInput] = useState('');
   const [loading, setLoading] = useState(true);
   const [tapCount, setTapCount] = useState(0);
+  const [celebration, setCelebration] = useState({ show: false, text: '', color: '' });
+  const [sparkles, setSparkles] = useState<Array<{ id: number; x: number; y: number; color: string; delay: number }>>([]);
   const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const sparkleIdRef = useRef(0);
 
-  // Generate dates - show 6 months back and 6 months forward for a nice view
   const generateDateRange = useCallback(() => {
     const today = new Date();
     const dates: Date[] = [];
-
-    // Start from 3 months ago
     const startDate = dateFns.startOfWeek(dateFns.subMonths(today, 3));
     let currentDate = startDate;
-
-    // End at 3 months from now or Step 2, whichever is sooner
     const endDate = dateFns.min([STEP_2_DATE, dateFns.addMonths(today, 3)]);
 
     while (currentDate <= endDate) {
       dates.push(currentDate);
       currentDate = dateFns.addDays(currentDate, 1);
     }
-
     return dates;
   }, []);
 
-  // Subscribe to Firebase data
   useEffect(() => {
     const studyRef = ref(database, 'studyHours');
-
     const unsubscribe = onValue(studyRef, (snapshot) => {
       const data = snapshot.val();
       setStudyData(data || {});
@@ -201,62 +261,60 @@ const StudyHeatmap: React.FC = () => {
       console.error('Firebase read error:', error);
       setLoading(false);
     });
-
     return () => unsubscribe();
   }, []);
 
-  // Secret knock: tap the title 5 times within 2 seconds
   const handleTitleTap = () => {
     const newTapCount = tapCount + 1;
     setTapCount(newTapCount);
 
-    // Reset tap count after 2 seconds of no tapping
-    if (tapTimeoutRef.current) {
-      clearTimeout(tapTimeoutRef.current);
-    }
-    tapTimeoutRef.current = setTimeout(() => {
-      setTapCount(0);
-    }, SECRET_TAP_WINDOW);
+    if (tapTimeoutRef.current) clearTimeout(tapTimeoutRef.current);
+    tapTimeoutRef.current = setTimeout(() => setTapCount(0), SECRET_TAP_WINDOW);
 
-    // Check if secret is unlocked
     if (newTapCount >= SECRET_TAP_COUNT) {
       setShowSecret(!showSecret);
       setTapCount(0);
-      if (tapTimeoutRef.current) {
-        clearTimeout(tapTimeoutRef.current);
-      }
+      if (tapTimeoutRef.current) clearTimeout(tapTimeoutRef.current);
     }
   };
 
-  const handleAddHours = async () => {
-    const hours = parseFloat(hoursInput);
-    if (isNaN(hours) || hours < 0 || hours > 24) return;
+  const triggerCelebration = (hours: number) => {
+    const messages = CELEBRATIONS[hours] || ['Nice!'];
+    const message = messages[Math.floor(Math.random() * messages.length)];
+    const color = CELEBRATION_COLORS[hours];
 
-    const newData = {
-      ...studyData,
-      [selectedDate]: (studyData[selectedDate] || 0) + hours
-    };
+    setCelebration({ show: true, text: message, color });
 
-    try {
-      await set(ref(database, 'studyHours'), newData);
-      setHoursInput('');
-    } catch (error) {
-      console.error('Failed to save:', error);
-    }
+    // Create sparkles
+    const newSparkles = Array.from({ length: 8 }, (_, i) => ({
+      id: sparkleIdRef.current++,
+      x: 20 + Math.random() * 60,
+      y: 30 + Math.random() * 40,
+      color: CELEBRATION_COLORS[Math.floor(Math.random() * CELEBRATION_COLORS.length)],
+      delay: i * 50
+    }));
+    setSparkles(newSparkles);
+
+    // Clear celebration after animation
+    setTimeout(() => {
+      setCelebration({ show: false, text: '', color: '' });
+      setSparkles([]);
+    }, 1000);
   };
 
-  const handleSetHours = async () => {
-    const hours = parseFloat(hoursInput);
-    if (isNaN(hours) || hours < 0 || hours > 24) return;
+  const handleHourClick = async () => {
+    const currentHours = studyData[selectedDate] || 0;
+    const newHours = (currentHours + 1) % 10; // Cycle 0-9
 
     const newData = {
       ...studyData,
-      [selectedDate]: hours
+      [selectedDate]: newHours
     };
+
+    triggerCelebration(newHours);
 
     try {
       await set(ref(database, 'studyHours'), newData);
-      setHoursInput('');
     } catch (error) {
       console.error('Failed to save:', error);
     }
@@ -267,9 +325,9 @@ const StudyHeatmap: React.FC = () => {
   };
 
   const dates = generateDateRange();
-
-  // Calculate total hours
   const totalHours = Object.values(studyData).reduce((sum, hours) => sum + hours, 0);
+  const currentHours = studyData[selectedDate] || 0;
+  const currentColor = CELEBRATION_COLORS[currentHours];
 
   if (loading) {
     return (
@@ -281,10 +339,7 @@ const StudyHeatmap: React.FC = () => {
 
   return (
     <HeatmapContainer>
-      <HeatmapTitle
-        onClick={handleTitleTap}
-        taps={tapCount}
-      >
+      <HeatmapTitle onClick={handleTitleTap} taps={tapCount}>
         Study Tracker
       </HeatmapTitle>
 
@@ -292,8 +347,7 @@ const StudyHeatmap: React.FC = () => {
         {dates.map((date, i) => {
           const dateStr = dateFns.format(date, 'yyyy-MM-dd');
           const hours = studyData[dateStr] || 0;
-          const isFuture = dateFns.isFuture(dateFns.startOfDay(date)) &&
-                          !dateFns.isToday(date);
+          const isFuture = dateFns.isFuture(dateFns.startOfDay(date)) && !dateFns.isToday(date);
 
           return (
             <DayCell
@@ -319,26 +373,33 @@ const StudyHeatmap: React.FC = () => {
       </Legend>
 
       <TotalHours>
-        Total: {totalHours.toFixed(1)} hours studied
+        Total: {totalHours} hours studied
       </TotalHours>
 
-      <SecretInput show={showSecret.toString()}>
-        <InputRow>
-          <DateLabel>{dateFns.format(new Date(selectedDate), 'MMM d, yyyy')}</DateLabel>
-          <Input
-            type="number"
-            min="0"
-            max="24"
-            step="0.5"
-            value={hoursInput}
-            onChange={(e) => setHoursInput(e.target.value)}
-            placeholder="hours"
+      <SecretPanel show={showSecret.toString()}>
+        <CelebrationText show={celebration.show.toString()} color={celebration.color}>
+          {celebration.text}
+        </CelebrationText>
+
+        {sparkles.map(sparkle => (
+          <Sparkle
+            key={sparkle.id}
+            x={sparkle.x}
+            y={sparkle.y}
+            color={sparkle.color}
+            delay={sparkle.delay}
           />
-          <Button onClick={handleAddHours}>+Add</Button>
-          <Button onClick={handleSetHours} style={{background: '#666'}}>Set</Button>
-        </InputRow>
-        <SecretIndicator>secret mode</SecretIndicator>
-      </SecretInput>
+        ))}
+
+        <Question>Did you study today?</Question>
+        <DateDisplay>{dateFns.format(new Date(selectedDate), 'EEEE, MMMM d')}</DateDisplay>
+
+        <HourButton hourcolor={currentColor} onClick={handleHourClick}>
+          {currentHours}
+        </HourButton>
+
+        <HourLabel>tap to add hours</HourLabel>
+      </SecretPanel>
     </HeatmapContainer>
   );
 };
