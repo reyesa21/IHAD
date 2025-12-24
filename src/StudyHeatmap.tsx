@@ -6,15 +6,17 @@ import { ref, onValue, set } from 'firebase/database';
 
 const STEP_2_DATE = new Date('2027-05-08');
 
-// Secret knock pattern: tap 5 times within 2 seconds
-const SECRET_TAP_COUNT = 5;
-const SECRET_TAP_WINDOW = 2000;
+// "Shave and a haircut" knock pattern timing (in ms from first knock)
+// Pattern: knock knock-knock knock [pause] knock knock
+// Timing:  0    ~250  ~400  ~550   [gap]   ~900  ~1050
+const KNOCK_PATTERN = [0, 250, 400, 550, 900, 1050];
+const KNOCK_TOLERANCE = 150; // Allow 150ms deviation
+const KNOCK_RESET_TIME = 2000; // Reset if no knock for 2 seconds
 
 interface StudyData {
   [date: string]: number;
 }
 
-// Celebration messages for each hour level
 const CELEBRATIONS: { [key: number]: string[] } = {
   0: ['Reset!', 'Starting fresh!', 'New day!'],
   1: ['Nice start!', 'One hour!', 'Getting going!'],
@@ -28,7 +30,6 @@ const CELEBRATIONS: { [key: number]: string[] } = {
   9: ['SUPERHERO!', 'Nine hours!', 'Maximum power!'],
 };
 
-// Fun colors for celebrations
 const CELEBRATION_COLORS = [
   '#ff6b6b', '#feca57', '#48dbfb', '#ff9ff3', '#54a0ff',
   '#5f27cd', '#00d2d3', '#ff9f43', '#10ac84', '#ee5a24'
@@ -39,7 +40,6 @@ const floatUp = keyframes`
   100% { transform: translateY(-100px) scale(2); opacity: 0; }
 `;
 
-// Small corner version
 const HeatmapContainerSmall = styled.div`
   position: fixed;
   bottom: 20px;
@@ -52,9 +52,18 @@ const HeatmapContainerSmall = styled.div`
   backdrop-filter: blur(10px);
   user-select: none;
   -webkit-user-select: none;
+  cursor: pointer;
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: scale(1.02);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
 `;
 
-// Full screen expanded version
 const HeatmapContainerExpanded = styled.div`
   position: fixed;
   top: 50%;
@@ -84,24 +93,12 @@ const Overlay = styled.div`
   z-index: 999;
 `;
 
-const HeatmapTitleSmall = styled.div<{ taps: number }>`
+const HeatmapTitleSmall = styled.div`
   color: #fff;
   font-size: 12px;
   margin-bottom: 10px;
   text-align: center;
-  cursor: pointer;
   padding: 5px;
-  border-radius: 5px;
-  transition: background 0.2s;
-
-  &:active {
-    background: rgba(255, 255, 255, 0.1);
-  }
-
-  &::after {
-    content: '${props => props.taps > 0 && props.taps < SECRET_TAP_COUNT ? ' ' + '.'.repeat(props.taps) : ''}';
-    color: #39d353;
-  }
 `;
 
 const HeatmapTitleExpanded = styled.div`
@@ -181,7 +178,7 @@ const DayCellExpanded = styled.div<{ intensity: number; isfuture: string; istoda
   box-sizing: border-box;
 `;
 
-const SecretPanel = styled.div`
+const SecretPanel = styled.div<{ unlocked: string }>`
   margin-top: 40px;
   padding: 40px;
   background: rgba(255, 255, 255, 0.08);
@@ -189,6 +186,8 @@ const SecretPanel = styled.div`
   text-align: center;
   position: relative;
   overflow: hidden;
+  opacity: ${props => props.unlocked === 'true' ? 1 : 0.5};
+  transition: opacity 0.3s;
 `;
 
 const Question = styled.div`
@@ -204,7 +203,7 @@ const DateDisplay = styled.div`
   margin-bottom: 30px;
 `;
 
-const HourButton = styled.button<{ hourcolor: string }>`
+const HourButton = styled.button<{ hourcolor: string; unlocked: string }>`
   width: 180px;
   height: 180px;
   border-radius: 50%;
@@ -217,10 +216,11 @@ const HourButton = styled.button<{ hourcolor: string }>`
   transition: all 0.2s;
   position: relative;
   box-shadow: 0 0 50px ${props => props.hourcolor}55;
+  opacity: ${props => props.unlocked === 'true' ? 1 : 0.6};
 
   &:hover {
-    transform: scale(1.1);
-    box-shadow: 0 0 80px ${props => props.hourcolor}99;
+    transform: ${props => props.unlocked === 'true' ? 'scale(1.1)' : 'scale(1.02)'};
+    box-shadow: 0 0 ${props => props.unlocked === 'true' ? '80px' : '50px'} ${props => props.hourcolor}${props => props.unlocked === 'true' ? '99' : '55'};
   }
 
   &:active {
@@ -228,10 +228,32 @@ const HourButton = styled.button<{ hourcolor: string }>`
   }
 `;
 
-const HourLabel = styled.div`
-  color: #888;
+const HourLabel = styled.div<{ unlocked: string }>`
+  color: ${props => props.unlocked === 'true' ? '#888' : '#555'};
   font-size: 18px;
   margin-top: 25px;
+`;
+
+const KnockHint = styled.div`
+  color: #444;
+  font-size: 12px;
+  margin-top: 10px;
+  font-style: italic;
+`;
+
+const KnockProgress = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 15px;
+`;
+
+const KnockDot = styled.div<{ active: string }>`
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: ${props => props.active === 'true' ? '#39d353' : '#333'};
+  transition: background 0.1s;
 `;
 
 const CelebrationText = styled.div<{ color: string; show: string }>`
@@ -315,12 +337,13 @@ const TotalHoursExpanded = styled.div`
 
 const StudyHeatmap: React.FC = () => {
   const [studyData, setStudyData] = useState<StudyData>({});
-  const [showSecret, setShowSecret] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isUnlocked, setIsUnlocked] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [tapCount, setTapCount] = useState(0);
+  const [knockTimes, setKnockTimes] = useState<number[]>([]);
   const [celebration, setCelebration] = useState({ show: false, text: '', color: '' });
   const [sparkles, setSparkles] = useState<Array<{ id: number; x: number; y: number; color: string; delay: number; size: number }>>([]);
-  const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const knockResetRef = useRef<NodeJS.Timeout | null>(null);
   const sparkleIdRef = useRef(0);
 
   const today = dateFns.format(new Date(), 'yyyy-MM-dd');
@@ -328,11 +351,9 @@ const StudyHeatmap: React.FC = () => {
   const generateDateRange = useCallback(() => {
     const todayDate = new Date();
     const dates: Date[] = [];
-    // Start from the Sunday of the current week
     const startDate = dateFns.startOfWeek(todayDate);
     let currentDate = startDate;
 
-    // Go until Step 2 date
     while (currentDate <= STEP_2_DATE) {
       dates.push(currentDate);
       currentDate = dateFns.addDays(currentDate, 1);
@@ -353,17 +374,53 @@ const StudyHeatmap: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  const handleTitleTap = () => {
-    const newTapCount = tapCount + 1;
-    setTapCount(newTapCount);
+  // Check if knock pattern matches "shave and a haircut"
+  const checkKnockPattern = (times: number[]): boolean => {
+    if (times.length !== 6) return false;
 
-    if (tapTimeoutRef.current) clearTimeout(tapTimeoutRef.current);
-    tapTimeoutRef.current = setTimeout(() => setTapCount(0), SECRET_TAP_WINDOW);
+    const firstKnock = times[0];
+    const normalizedTimes = times.map(t => t - firstKnock);
 
-    if (newTapCount >= SECRET_TAP_COUNT) {
-      setShowSecret(true);
-      setTapCount(0);
-      if (tapTimeoutRef.current) clearTimeout(tapTimeoutRef.current);
+    for (let i = 1; i < 6; i++) {
+      const expected = KNOCK_PATTERN[i];
+      const actual = normalizedTimes[i];
+      if (Math.abs(expected - actual) > KNOCK_TOLERANCE) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const handleKnock = () => {
+    if (isUnlocked) {
+      // Already unlocked, just increment hours
+      handleHourClick();
+      return;
+    }
+
+    const now = Date.now();
+    const newKnockTimes = [...knockTimes, now];
+
+    // Reset timeout
+    if (knockResetRef.current) clearTimeout(knockResetRef.current);
+    knockResetRef.current = setTimeout(() => {
+      setKnockTimes([]);
+    }, KNOCK_RESET_TIME);
+
+    // Check if we have 6 knocks
+    if (newKnockTimes.length === 6) {
+      if (checkKnockPattern(newKnockTimes)) {
+        setIsUnlocked(true);
+        setKnockTimes([]);
+      } else {
+        // Wrong pattern, reset
+        setKnockTimes([]);
+      }
+    } else if (newKnockTimes.length > 6) {
+      // Too many knocks, keep last 5 and add new one
+      setKnockTimes(newKnockTimes.slice(-5));
+    } else {
+      setKnockTimes(newKnockTimes);
     }
   };
 
@@ -391,6 +448,8 @@ const StudyHeatmap: React.FC = () => {
   };
 
   const handleHourClick = async () => {
+    if (!isUnlocked) return;
+
     const currentHours = studyData[today] || 0;
     const newHours = (currentHours + 1) % 10;
 
@@ -408,6 +467,12 @@ const StudyHeatmap: React.FC = () => {
     }
   };
 
+  const handleClose = () => {
+    setIsExpanded(false);
+    setIsUnlocked(false);
+    setKnockTimes([]);
+  };
+
   const dates = generateDateRange();
   const numWeeks = Math.ceil(dates.length / 7);
   const totalHours = Object.values(studyData).reduce((sum, hours) => sum + hours, 0);
@@ -418,18 +483,18 @@ const StudyHeatmap: React.FC = () => {
   if (loading) {
     return (
       <HeatmapContainerSmall>
-        <HeatmapTitleSmall taps={0}>Loading...</HeatmapTitleSmall>
+        <HeatmapTitleSmall>Loading...</HeatmapTitleSmall>
       </HeatmapContainerSmall>
     );
   }
 
-  // Expanded full-screen view
-  if (showSecret) {
+  // Expanded view (read-only unless unlocked)
+  if (isExpanded) {
     return (
       <>
-        <Overlay onClick={() => setShowSecret(false)} />
+        <Overlay onClick={handleClose} />
         <HeatmapContainerExpanded>
-          <CloseButton onClick={() => setShowSecret(false)}>&times;</CloseButton>
+          <CloseButton onClick={handleClose}>&times;</CloseButton>
 
           <HeatmapTitleExpanded>Study Tracker</HeatmapTitleExpanded>
 
@@ -466,7 +531,7 @@ const StudyHeatmap: React.FC = () => {
             {totalHours} hours studied | {daysUntilStep2} days until Step 2
           </TotalHoursExpanded>
 
-          <SecretPanel>
+          <SecretPanel unlocked={isUnlocked.toString()}>
             <CelebrationText show={celebration.show.toString()} color={celebration.color}>
               {celebration.text}
             </CelebrationText>
@@ -485,23 +550,38 @@ const StudyHeatmap: React.FC = () => {
             <Question>Did you study today?</Question>
             <DateDisplay>{dateFns.format(new Date(), 'EEEE, MMMM d')}</DateDisplay>
 
-            <HourButton hourcolor={currentColor} onClick={handleHourClick}>
+            <HourButton
+              hourcolor={currentColor}
+              unlocked={isUnlocked.toString()}
+              onClick={handleKnock}
+            >
               {todayHours}
             </HourButton>
 
-            <HourLabel>tap to add hours</HourLabel>
+            <HourLabel unlocked={isUnlocked.toString()}>
+              {isUnlocked ? 'tap to add hours' : 'knock to unlock'}
+            </HourLabel>
+
+            {!isUnlocked && (
+              <>
+                <KnockHint>knock knock-knock knock ... knock knock</KnockHint>
+                <KnockProgress>
+                  {[0, 1, 2, 3, 4, 5].map(i => (
+                    <KnockDot key={i} active={(knockTimes.length > i).toString()} />
+                  ))}
+                </KnockProgress>
+              </>
+            )}
           </SecretPanel>
         </HeatmapContainerExpanded>
       </>
     );
   }
 
-  // Small corner view
+  // Small corner view - click to expand
   return (
-    <HeatmapContainerSmall>
-      <HeatmapTitleSmall onClick={handleTitleTap} taps={tapCount}>
-        Study Tracker
-      </HeatmapTitleSmall>
+    <HeatmapContainerSmall onClick={() => setIsExpanded(true)}>
+      <HeatmapTitleSmall>Study Tracker</HeatmapTitleSmall>
 
       <HeatmapGridSmall weeks={numWeeks}>
         {dates.map((date, i) => {
