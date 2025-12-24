@@ -145,9 +145,9 @@ const CloseButton = styled.button`
 
 const HeatmapGridSmall = styled.div<{ weeks: number }>`
   display: grid;
-  grid-template-columns: repeat(${props => props.weeks}, 12px);
-  grid-template-rows: repeat(7, 12px);
-  gap: 3px;
+  grid-template-columns: repeat(${props => props.weeks}, 14px);
+  grid-template-rows: repeat(7, 14px);
+  gap: 4px;
   grid-auto-flow: column;
   overflow-x: auto;
 `;
@@ -165,16 +165,16 @@ const HeatmapGridExpanded = styled.div<{ weeks: number }>`
 `;
 
 const DayCellSmall = styled.div<{ intensity: number; isfuture: string }>`
-  width: 12px;
-  height: 12px;
-  border-radius: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
   background-color: ${props => {
     if (props.isfuture === 'true') return '#161b22';
     if (props.intensity === 0) return '#21262d';
-    if (props.intensity <= 2) return '#0e4429';
-    if (props.intensity <= 4) return '#006d32';
-    if (props.intensity <= 6) return '#26a641';
-    return '#39d353';
+    if (props.intensity <= 2) return '#0a3069';
+    if (props.intensity <= 4) return '#0550ae';
+    if (props.intensity <= 6) return '#1f6feb';
+    return '#58a6ff';
   }};
 `;
 
@@ -184,12 +184,12 @@ const DayCellExpanded = styled.div<{ intensity: number; isfuture: string; istoda
   background-color: ${props => {
     if (props.isfuture === 'true') return '#161b22';
     if (props.intensity === 0) return '#21262d';
-    if (props.intensity <= 2) return '#0e4429';
-    if (props.intensity <= 4) return '#006d32';
-    if (props.intensity <= 6) return '#26a641';
-    return '#39d353';
+    if (props.intensity <= 2) return '#0a3069';
+    if (props.intensity <= 4) return '#0550ae';
+    if (props.intensity <= 6) return '#1f6feb';
+    return '#58a6ff';
   }};
-  border: ${props => props.istoday === 'true' ? '2px solid #58a6ff' : 'none'};
+  border: ${props => props.istoday === 'true' ? '2px solid #fff' : 'none'};
   box-sizing: border-box;
 `;
 
@@ -304,9 +304,9 @@ const LegendExpanded = styled.div`
 `;
 
 const LegendCellSmall = styled.div<{ color: string }>`
-  width: 12px;
-  height: 12px;
-  border-radius: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
   background-color: ${props => props.color};
 `;
 
@@ -528,10 +528,10 @@ const StudyHeatmap: React.FC = () => {
           <LegendExpanded>
             <span>Less</span>
             <LegendCellExpanded color="#21262d" />
-            <LegendCellExpanded color="#0e4429" />
-            <LegendCellExpanded color="#006d32" />
-            <LegendCellExpanded color="#26a641" />
-            <LegendCellExpanded color="#39d353" />
+            <LegendCellExpanded color="#0a3069" />
+            <LegendCellExpanded color="#0550ae" />
+            <LegendCellExpanded color="#1f6feb" />
+            <LegendCellExpanded color="#58a6ff" />
             <span>More</span>
           </LegendExpanded>
 
@@ -598,10 +598,10 @@ const StudyHeatmap: React.FC = () => {
         <LegendSmall>
           <span>Less</span>
           <LegendCellSmall color="#21262d" />
-          <LegendCellSmall color="#0e4429" />
-          <LegendCellSmall color="#006d32" />
-          <LegendCellSmall color="#26a641" />
-          <LegendCellSmall color="#39d353" />
+          <LegendCellSmall color="#0a3069" />
+          <LegendCellSmall color="#0550ae" />
+          <LegendCellSmall color="#1f6feb" />
+          <LegendCellSmall color="#58a6ff" />
           <span>More</span>
         </LegendSmall>
 
