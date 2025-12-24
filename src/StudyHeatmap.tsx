@@ -48,14 +48,14 @@ const floatUp = keyframes`
 
 const HeatmapContainerSmall = styled.div`
   position: fixed;
-  bottom: 24px;
-  right: 24px;
+  bottom: 16px;
+  right: 16px;
   background: #161b22;
   border: 1px solid #30363d;
-  border-radius: 16px;
-  padding: 20px;
+  border-radius: 12px;
+  padding: 12px;
   z-index: 1000;
-  max-width: 420px;
+  max-width: calc(100vw - 32px);
   backdrop-filter: blur(10px);
   user-select: none;
   -webkit-user-select: none;
@@ -71,6 +71,13 @@ const HeatmapContainerSmall = styled.div`
   &:active {
     transform: scale(0.98);
   }
+
+  @media (min-width: 480px) {
+    bottom: 24px;
+    right: 24px;
+    padding: 20px;
+    border-radius: 16px;
+  }
 `;
 
 const HeatmapContainerExpanded = styled.div`
@@ -80,18 +87,25 @@ const HeatmapContainerExpanded = styled.div`
   transform: translate(-50%, -50%);
   background: #0d1117;
   border: 1px solid #30363d;
-  border-radius: 24px;
-  padding: 40px;
+  border-radius: 16px;
+  padding: 20px;
   z-index: 1000;
-  width: 90vw;
+  width: 94vw;
   max-width: 800px;
-  max-height: 90vh;
+  max-height: 85vh;
   overflow-y: auto;
   backdrop-filter: blur(20px);
   user-select: none;
   -webkit-user-select: none;
-  box-shadow: 0 0 100px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.8);
   font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  @media (min-width: 480px) {
+    padding: 40px;
+    border-radius: 24px;
+    width: 90vw;
+    max-height: 90vh;
+  }
 `;
 
 const Overlay = styled.div`
@@ -115,13 +129,18 @@ const HeatmapTitleSmall = styled.div`
 
 const HeatmapTitleExpanded = styled.div`
   color: #f0f6fc;
-  font-size: 32px;
+  font-size: 22px;
   font-weight: 600;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
   text-align: center;
   cursor: default;
   user-select: none;
   letter-spacing: -0.5px;
+
+  @media (min-width: 480px) {
+    font-size: 32px;
+    margin-bottom: 30px;
+  }
 `;
 
 const CloseButton = styled.button`
@@ -145,11 +164,17 @@ const CloseButton = styled.button`
 
 const HeatmapGridSmall = styled.div<{ weeks: number }>`
   display: grid;
-  grid-template-columns: repeat(${props => props.weeks}, 14px);
-  grid-template-rows: repeat(7, 14px);
-  gap: 4px;
+  grid-template-columns: repeat(${props => props.weeks}, 10px);
+  grid-template-rows: repeat(7, 10px);
+  gap: 2px;
   grid-auto-flow: column;
   overflow-x: auto;
+
+  @media (min-width: 480px) {
+    grid-template-columns: repeat(${props => props.weeks}, 14px);
+    grid-template-rows: repeat(7, 14px);
+    gap: 4px;
+  }
 `;
 
 const HeatmapGridExpanded = styled.div<{ weeks: number }>`
@@ -164,9 +189,9 @@ const HeatmapGridExpanded = styled.div<{ weeks: number }>`
 `;
 
 const DayCellSmall = styled.div<{ intensity: number; isfuture: string }>`
-  width: 14px;
-  height: 14px;
-  border-radius: 4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
   background-color: ${props => {
     if (props.isfuture === 'true') return '#161b22';
     if (props.intensity === 0) return '#21262d';
@@ -175,6 +200,12 @@ const DayCellSmall = styled.div<{ intensity: number; isfuture: string }>`
     if (props.intensity <= 6) return '#1f6feb';
     return '#58a6ff';
   }};
+
+  @media (min-width: 480px) {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+  }
 `;
 
 const DayCellExpanded = styled.div<{ intensity: number; isfuture: string; istoday: string }>`
@@ -194,54 +225,78 @@ const DayCellExpanded = styled.div<{ intensity: number; isfuture: string; istoda
 `;
 
 const SecretPanel = styled.div`
-  margin-top: 40px;
-  padding: 40px;
+  margin-top: 20px;
+  padding: 20px;
   background: rgba(33, 38, 45, 0.8);
   border: 1px solid #30363d;
-  border-radius: 16px;
+  border-radius: 12px;
   text-align: center;
   position: relative;
   overflow: hidden;
+
+  @media (min-width: 480px) {
+    margin-top: 40px;
+    padding: 40px;
+    border-radius: 16px;
+  }
 `;
 
 const Question = styled.div`
   color: #f0f6fc;
-  font-size: 26px;
+  font-size: 20px;
   font-weight: 500;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
   letter-spacing: -0.3px;
+
+  @media (min-width: 480px) {
+    font-size: 26px;
+    margin-bottom: 15px;
+  }
 `;
 
 const DateDisplay = styled.div`
   color: #8b949e;
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 400;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
   letter-spacing: 0.2px;
+
+  @media (min-width: 480px) {
+    font-size: 18px;
+    margin-bottom: 30px;
+  }
 `;
 
 const HourButton = styled.button<{ hourcolor: string }>`
-  width: 160px;
-  height: 160px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
-  border: 4px solid ${props => props.hourcolor};
+  border: 3px solid ${props => props.hourcolor};
   background: linear-gradient(135deg, ${props => props.hourcolor}33, ${props => props.hourcolor}11);
   color: #f0f6fc;
-  font-size: 64px;
+  font-size: 48px;
   font-weight: 600;
   font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
   cursor: pointer;
   transition: all 0.2s;
   position: relative;
-  box-shadow: 0 0 40px ${props => props.hourcolor}44;
+  box-shadow: 0 0 30px ${props => props.hourcolor}44;
 
   &:hover {
     transform: scale(1.08);
-    box-shadow: 0 0 60px ${props => props.hourcolor}77;
+    box-shadow: 0 0 50px ${props => props.hourcolor}77;
   }
 
   &:active {
     transform: scale(0.95);
+  }
+
+  @media (min-width: 480px) {
+    width: 160px;
+    height: 160px;
+    border: 4px solid ${props => props.hourcolor};
+    font-size: 64px;
+    box-shadow: 0 0 40px ${props => props.hourcolor}44;
   }
 `;
 
@@ -304,10 +359,16 @@ const LegendExpanded = styled.div`
 `;
 
 const LegendCellSmall = styled.div<{ color: string }>`
-  width: 14px;
-  height: 14px;
-  border-radius: 4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
   background-color: ${props => props.color};
+
+  @media (min-width: 480px) {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+  }
 `;
 
 const LegendCellExpanded = styled.div<{ color: string }>`
@@ -327,11 +388,16 @@ const TotalHoursSmall = styled.div`
 
 const TotalHoursExpanded = styled.div`
   color: #c9d1d9;
-  font-size: 20px;
-  margin-top: 25px;
+  font-size: 14px;
+  margin-top: 15px;
   text-align: center;
   font-weight: 500;
   letter-spacing: -0.2px;
+
+  @media (min-width: 480px) {
+    font-size: 20px;
+    margin-top: 25px;
+  }
 `;
 
 const StudyHeatmap: React.FC = () => {
