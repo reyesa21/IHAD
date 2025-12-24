@@ -164,7 +164,7 @@ const DayCellSmall = styled.div<{ intensity: number; isfuture: string }>`
   }};
 `;
 
-const DayCellExpanded = styled.div<{ intensity: number; isfuture: string; isselected: string }>`
+const DayCellExpanded = styled.div<{ intensity: number; isfuture: string; istoday: string }>`
   aspect-ratio: 1;
   border-radius: 6px;
   background-color: ${props => {
@@ -175,18 +175,8 @@ const DayCellExpanded = styled.div<{ intensity: number; isfuture: string; issele
     if (props.intensity <= 6) return '#26a641';
     return '#39d353';
   }};
-  cursor: pointer;
-  border: ${props => props.isselected === 'true' ? '3px solid #fff' : 'none'};
+  border: ${props => props.istoday === 'true' ? '3px solid #fff' : 'none'};
   box-sizing: border-box;
-  transition: transform 0.1s;
-
-  &:hover {
-    transform: scale(1.15);
-  }
-
-  &:active {
-    opacity: 0.7;
-  }
 `;
 
 const SecretPanel = styled.div`
@@ -324,13 +314,14 @@ const TotalHoursExpanded = styled.div`
 const StudyHeatmap: React.FC = () => {
   const [studyData, setStudyData] = useState<StudyData>({});
   const [showSecret, setShowSecret] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<string>(dateFns.format(new Date(), 'yyyy-MM-dd'));
   const [loading, setLoading] = useState(true);
   const [tapCount, setTapCount] = useState(0);
   const [celebration, setCelebration] = useState({ show: false, text: '', color: '' });
   const [sparkles, setSparkles] = useState<Array<{ id: number; x: number; y: number; color: string; delay: number; size: number }>>([]);
   const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const sparkleIdRef = useRef(0);
+
+  const today = dateFns.format(new Date(), 'yyyy-MM-dd');
 
   const generateDateRange = useCallback(() => {
     const today = new Date();
@@ -397,12 +388,12 @@ const StudyHeatmap: React.FC = () => {
   };
 
   const handleHourClick = async () => {
-    const currentHours = studyData[selectedDate] || 0;
+    const currentHours = studyData[today] || 0;
     const newHours = (currentHours + 1) % 10;
 
     const newData = {
       ...studyData,
-      [selectedDate]: newHours
+      [today]: newHours
     };
 
     triggerCelebration(newHours);
@@ -414,14 +405,10 @@ const StudyHeatmap: React.FC = () => {
     }
   };
 
-  const handleCellClick = (date: Date) => {
-    setSelectedDate(dateFns.format(date, 'yyyy-MM-dd'));
-  };
-
   const dates = generateDateRange();
   const totalHours = Object.values(studyData).reduce((sum, hours) => sum + hours, 0);
-  const currentHours = studyData[selectedDate] || 0;
-  const currentColor = CELEBRATION_COLORS[currentHours];
+  const todayHours = studyData[today] || 0;
+  const currentColor = CELEBRATION_COLORS[todayHours];
 
   if (loading) {
     return (
@@ -446,14 +433,14 @@ const StudyHeatmap: React.FC = () => {
               const dateStr = dateFns.format(date, 'yyyy-MM-dd');
               const hours = studyData[dateStr] || 0;
               const isFuture = dateFns.isFuture(dateFns.startOfDay(date)) && !dateFns.isToday(date);
+              const isToday = dateFns.isToday(date);
 
               return (
                 <DayCellExpanded
                   key={i}
                   intensity={hours}
                   isfuture={isFuture.toString()}
-                  isselected={(dateStr === selectedDate).toString()}
-                  onClick={() => handleCellClick(date)}
+                  istoday={isToday.toString()}
                   title={`${dateFns.format(date, 'MMM d')}: ${hours}h`}
                 />
               );
@@ -491,10 +478,10 @@ const StudyHeatmap: React.FC = () => {
             ))}
 
             <Question>Did you study today?</Question>
-            <DateDisplay>{dateFns.format(new Date(selectedDate), 'EEEE, MMMM d')}</DateDisplay>
+            <DateDisplay>{dateFns.format(new Date(), 'EEEE, MMMM d')}</DateDisplay>
 
             <HourButton hourcolor={currentColor} onClick={handleHourClick}>
-              {currentHours}
+              {todayHours}
             </HourButton>
 
             <HourLabel>tap to add hours</HourLabel>
