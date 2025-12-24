@@ -81,10 +81,10 @@ const HeatmapContainerExpanded = styled.div`
   background: #0d1117;
   border: 1px solid #30363d;
   border-radius: 24px;
-  padding: 40px;
+  padding: 30px;
   z-index: 1000;
-  width: calc(100vw - 48px);
-  max-width: 800px;
+  width: calc(100vw - 32px);
+  max-width: 95vw;
   max-height: 90vh;
   overflow-y: auto;
   backdrop-filter: blur(20px);
@@ -156,11 +156,11 @@ const HeatmapGridExpanded = styled.div<{ weeks: number }>`
   display: grid;
   grid-template-columns: repeat(${props => props.weeks}, 1fr);
   grid-template-rows: repeat(7, 1fr);
-  gap: 3px;
+  gap: 4px;
   grid-auto-flow: column;
   width: 100%;
   aspect-ratio: ${props => props.weeks / 7};
-  max-height: 50vh;
+  max-height: 60vh;
 `;
 
 const DayCellSmall = styled.div<{ intensity: number; isfuture: string }>`
@@ -180,7 +180,9 @@ const DayCellSmall = styled.div<{ intensity: number; isfuture: string }>`
 const DayCellExpanded = styled.div<{ intensity: number; isfuture: string; istoday: string }>`
   width: 100%;
   height: 100%;
-  border-radius: 3px;
+  border-radius: 4px;
+  min-width: 8px;
+  min-height: 8px;
   background-color: ${props => {
     if (props.isfuture === 'true') return '#161b22';
     if (props.intensity === 0) return '#21262d';
