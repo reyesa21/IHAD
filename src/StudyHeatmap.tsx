@@ -131,28 +131,30 @@ const CloseButton = styled.button`
   }
 `;
 
-const HeatmapGridSmall = styled.div`
+const HeatmapGridSmall = styled.div<{ weeks: number }>`
   display: grid;
-  grid-template-columns: repeat(26, 10px);
-  grid-template-rows: repeat(7, 10px);
+  grid-template-columns: repeat(${props => props.weeks}, 8px);
+  grid-template-rows: repeat(7, 8px);
   gap: 2px;
   grid-auto-flow: column;
   overflow-x: auto;
 `;
 
-const HeatmapGridExpanded = styled.div`
+const HeatmapGridExpanded = styled.div<{ weeks: number }>`
   display: grid;
-  grid-template-columns: repeat(26, 1fr);
+  grid-template-columns: repeat(${props => props.weeks}, 1fr);
   grid-template-rows: repeat(7, 1fr);
-  gap: 6px;
+  gap: 4px;
   grid-auto-flow: column;
   width: 100%;
   margin: 0 auto;
+  max-height: 40vh;
+  overflow: auto;
 `;
 
 const DayCellSmall = styled.div<{ intensity: number; isfuture: string }>`
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 2px;
   background-color: ${props => {
     if (props.isfuture === 'true') return '#1a1a1a';
@@ -324,13 +326,14 @@ const StudyHeatmap: React.FC = () => {
   const today = dateFns.format(new Date(), 'yyyy-MM-dd');
 
   const generateDateRange = useCallback(() => {
-    const today = new Date();
+    const todayDate = new Date();
     const dates: Date[] = [];
-    const startDate = dateFns.startOfWeek(dateFns.subMonths(today, 3));
+    // Start from the Sunday of the current week
+    const startDate = dateFns.startOfWeek(todayDate);
     let currentDate = startDate;
-    const endDate = dateFns.min([STEP_2_DATE, dateFns.addMonths(today, 3)]);
 
-    while (currentDate <= endDate) {
+    // Go until Step 2 date
+    while (currentDate <= STEP_2_DATE) {
       dates.push(currentDate);
       currentDate = dateFns.addDays(currentDate, 1);
     }
@@ -406,9 +409,11 @@ const StudyHeatmap: React.FC = () => {
   };
 
   const dates = generateDateRange();
+  const numWeeks = Math.ceil(dates.length / 7);
   const totalHours = Object.values(studyData).reduce((sum, hours) => sum + hours, 0);
   const todayHours = studyData[today] || 0;
   const currentColor = CELEBRATION_COLORS[todayHours];
+  const daysUntilStep2 = dateFns.differenceInDays(STEP_2_DATE, new Date());
 
   if (loading) {
     return (
@@ -428,7 +433,7 @@ const StudyHeatmap: React.FC = () => {
 
           <HeatmapTitleExpanded>Study Tracker</HeatmapTitleExpanded>
 
-          <HeatmapGridExpanded>
+          <HeatmapGridExpanded weeks={numWeeks}>
             {dates.map((date, i) => {
               const dateStr = dateFns.format(date, 'yyyy-MM-dd');
               const hours = studyData[dateStr] || 0;
@@ -458,7 +463,7 @@ const StudyHeatmap: React.FC = () => {
           </LegendExpanded>
 
           <TotalHoursExpanded>
-            Total: {totalHours} hours studied
+            {totalHours} hours studied | {daysUntilStep2} days until Step 2
           </TotalHoursExpanded>
 
           <SecretPanel>
@@ -498,7 +503,7 @@ const StudyHeatmap: React.FC = () => {
         Study Tracker
       </HeatmapTitleSmall>
 
-      <HeatmapGridSmall>
+      <HeatmapGridSmall weeks={numWeeks}>
         {dates.map((date, i) => {
           const dateStr = dateFns.format(date, 'yyyy-MM-dd');
           const hours = studyData[dateStr] || 0;
