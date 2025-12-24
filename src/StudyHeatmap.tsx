@@ -7,8 +7,8 @@ import { ref, onValue, set } from 'firebase/database';
 const STEP_2_DATE = new Date('2027-05-08');
 
 // "Shave and a haircut" knock pattern - simplified detection
-// Pattern: tap tap-tap tap [pause] tap tap (6 taps total)
-// We detect: 4 quick taps, then a pause, then 2 quick taps
+// Pattern: tap tap-tap-tap tap [pause] tap tap (7 taps total)
+// We detect: 5 quick taps, then a pause, then 2 quick taps
 const QUICK_TAP_MAX = 400; // Max time between quick taps
 const PAUSE_MIN = 300; // Min pause before last 2 taps
 const PAUSE_MAX = 1500; // Max pause before last 2 taps
@@ -353,9 +353,9 @@ const StudyHeatmap: React.FC = () => {
   }, []);
 
   // Check if knock pattern matches "shave and a haircut"
-  // Pattern: 4 quick taps, pause, 2 quick taps
+  // Pattern: 5 quick taps, pause, 2 quick taps (7 total)
   const checkKnockPattern = (times: number[]): boolean => {
-    if (times.length !== 6) return false;
+    if (times.length !== 7) return false;
 
     // Calculate gaps between taps
     const gaps = [];
@@ -363,18 +363,19 @@ const StudyHeatmap: React.FC = () => {
       gaps.push(times[i] - times[i - 1]);
     }
 
-    // First 3 gaps should be quick (taps 1-2, 2-3, 3-4)
-    const firstThreeQuick = gaps[0] < QUICK_TAP_MAX &&
-                            gaps[1] < QUICK_TAP_MAX &&
-                            gaps[2] < QUICK_TAP_MAX;
+    // First 4 gaps should be quick (taps 1-2, 2-3, 3-4, 4-5)
+    const firstFourQuick = gaps[0] < QUICK_TAP_MAX &&
+                           gaps[1] < QUICK_TAP_MAX &&
+                           gaps[2] < QUICK_TAP_MAX &&
+                           gaps[3] < QUICK_TAP_MAX;
 
-    // Gap 4 (between tap 4 and 5) should be a pause
-    const hasPause = gaps[3] >= PAUSE_MIN && gaps[3] <= PAUSE_MAX;
+    // Gap 5 (between tap 5 and 6) should be a pause
+    const hasPause = gaps[4] >= PAUSE_MIN && gaps[4] <= PAUSE_MAX;
 
-    // Last gap should be quick (taps 5-6)
-    const lastQuick = gaps[4] < QUICK_TAP_MAX;
+    // Last gap should be quick (taps 6-7)
+    const lastQuick = gaps[5] < QUICK_TAP_MAX;
 
-    return firstThreeQuick && hasPause && lastQuick;
+    return firstFourQuick && hasPause && lastQuick;
   };
 
   const handleTitleKnock = () => {
@@ -387,8 +388,8 @@ const StudyHeatmap: React.FC = () => {
       setKnockTimes([]);
     }, KNOCK_RESET_TIME);
 
-    // Check if we have 6 knocks
-    if (newKnockTimes.length === 6) {
+    // Check if we have 7 knocks
+    if (newKnockTimes.length === 7) {
       if (checkKnockPattern(newKnockTimes)) {
         setIsUnlocked(true);
         setKnockTimes([]);
@@ -396,7 +397,7 @@ const StudyHeatmap: React.FC = () => {
         // Wrong pattern, reset
         setKnockTimes([]);
       }
-    } else if (newKnockTimes.length > 6) {
+    } else if (newKnockTimes.length > 7) {
       // Too many knocks, start fresh
       setKnockTimes([now]);
     } else {
