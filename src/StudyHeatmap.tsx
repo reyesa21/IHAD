@@ -1,8 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import styled, { keyframes, css } from 'styled-components';
+import styled, { keyframes, css, createGlobalStyle } from 'styled-components';
 import * as dateFns from 'date-fns';
 import { database } from './firebase';
 import { ref, onValue, set } from 'firebase/database';
+
+// Import elegant font
+const FontStyle = createGlobalStyle`
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+`;
 
 const STEP_2_DATE = new Date('2027-05-08');
 
@@ -43,21 +48,24 @@ const floatUp = keyframes`
 
 const HeatmapContainerSmall = styled.div`
   position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: rgba(0, 0, 0, 0.85);
-  border-radius: 12px;
-  padding: 15px;
+  bottom: 24px;
+  right: 24px;
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 16px;
+  padding: 20px;
   z-index: 1000;
-  max-width: 320px;
+  max-width: 420px;
   backdrop-filter: blur(10px);
   user-select: none;
   -webkit-user-select: none;
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
 
   &:hover {
     transform: scale(1.02);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   }
 
   &:active {
@@ -70,7 +78,8 @@ const HeatmapContainerExpanded = styled.div`
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(0, 0, 0, 0.95);
+  background: #0d1117;
+  border: 1px solid #30363d;
   border-radius: 24px;
   padding: 40px;
   z-index: 1000;
@@ -82,6 +91,7 @@ const HeatmapContainerExpanded = styled.div`
   user-select: none;
   -webkit-user-select: none;
   box-shadow: 0 0 100px rgba(0, 0, 0, 0.8);
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
 `;
 
 const Overlay = styled.div`
@@ -95,21 +105,23 @@ const Overlay = styled.div`
 `;
 
 const HeatmapTitleSmall = styled.div`
-  color: #fff;
-  font-size: 12px;
-  margin-bottom: 10px;
-  text-align: center;
-  padding: 5px;
+  color: #c9d1d9;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 14px;
+  text-align: left;
+  letter-spacing: 0.3px;
 `;
 
 const HeatmapTitleExpanded = styled.div`
-  color: #fff;
+  color: #f0f6fc;
   font-size: 32px;
-  font-weight: bold;
+  font-weight: 600;
   margin-bottom: 30px;
   text-align: center;
   cursor: default;
   user-select: none;
+  letter-spacing: -0.5px;
 `;
 
 const CloseButton = styled.button`
@@ -133,9 +145,9 @@ const CloseButton = styled.button`
 
 const HeatmapGridSmall = styled.div<{ weeks: number }>`
   display: grid;
-  grid-template-columns: repeat(${props => props.weeks}, 8px);
-  grid-template-rows: repeat(7, 8px);
-  gap: 2px;
+  grid-template-columns: repeat(${props => props.weeks}, 12px);
+  grid-template-rows: repeat(7, 12px);
+  gap: 3px;
   grid-auto-flow: column;
   overflow-x: auto;
 `;
@@ -153,12 +165,12 @@ const HeatmapGridExpanded = styled.div<{ weeks: number }>`
 `;
 
 const DayCellSmall = styled.div<{ intensity: number; isfuture: string }>`
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
   background-color: ${props => {
-    if (props.isfuture === 'true') return '#1a1a1a';
-    if (props.intensity === 0) return '#2d2d2d';
+    if (props.isfuture === 'true') return '#161b22';
+    if (props.intensity === 0) return '#21262d';
     if (props.intensity <= 2) return '#0e4429';
     if (props.intensity <= 4) return '#006d32';
     if (props.intensity <= 6) return '#26a641';
@@ -168,59 +180,64 @@ const DayCellSmall = styled.div<{ intensity: number; isfuture: string }>`
 
 const DayCellExpanded = styled.div<{ intensity: number; isfuture: string; istoday: string }>`
   aspect-ratio: 1;
-  border-radius: 6px;
+  border-radius: 4px;
   background-color: ${props => {
-    if (props.isfuture === 'true') return '#1a1a1a';
-    if (props.intensity === 0) return '#2d2d2d';
+    if (props.isfuture === 'true') return '#161b22';
+    if (props.intensity === 0) return '#21262d';
     if (props.intensity <= 2) return '#0e4429';
     if (props.intensity <= 4) return '#006d32';
     if (props.intensity <= 6) return '#26a641';
     return '#39d353';
   }};
-  border: ${props => props.istoday === 'true' ? '3px solid #fff' : 'none'};
+  border: ${props => props.istoday === 'true' ? '2px solid #58a6ff' : 'none'};
   box-sizing: border-box;
 `;
 
 const SecretPanel = styled.div`
   margin-top: 40px;
   padding: 40px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 24px;
+  background: rgba(33, 38, 45, 0.8);
+  border: 1px solid #30363d;
+  border-radius: 16px;
   text-align: center;
   position: relative;
   overflow: hidden;
 `;
 
 const Question = styled.div`
-  color: #fff;
-  font-size: 28px;
-  font-weight: bold;
+  color: #f0f6fc;
+  font-size: 26px;
+  font-weight: 500;
   margin-bottom: 15px;
+  letter-spacing: -0.3px;
 `;
 
 const DateDisplay = styled.div`
-  color: #aaa;
-  font-size: 20px;
+  color: #8b949e;
+  font-size: 18px;
+  font-weight: 400;
   margin-bottom: 30px;
+  letter-spacing: 0.2px;
 `;
 
 const HourButton = styled.button<{ hourcolor: string }>`
-  width: 180px;
-  height: 180px;
+  width: 160px;
+  height: 160px;
   border-radius: 50%;
-  border: 6px solid ${props => props.hourcolor};
-  background: linear-gradient(135deg, ${props => props.hourcolor}44, ${props => props.hourcolor}11);
-  color: #fff;
-  font-size: 72px;
-  font-weight: bold;
+  border: 4px solid ${props => props.hourcolor};
+  background: linear-gradient(135deg, ${props => props.hourcolor}33, ${props => props.hourcolor}11);
+  color: #f0f6fc;
+  font-size: 64px;
+  font-weight: 600;
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
   cursor: pointer;
   transition: all 0.2s;
   position: relative;
-  box-shadow: 0 0 50px ${props => props.hourcolor}55;
+  box-shadow: 0 0 40px ${props => props.hourcolor}44;
 
   &:hover {
-    transform: scale(1.1);
-    box-shadow: 0 0 80px ${props => props.hourcolor}99;
+    transform: scale(1.08);
+    box-shadow: 0 0 60px ${props => props.hourcolor}77;
   }
 
   &:active {
@@ -229,9 +246,11 @@ const HourButton = styled.button<{ hourcolor: string }>`
 `;
 
 const HourLabel = styled.div`
-  color: #888;
-  font-size: 18px;
+  color: #8b949e;
+  font-size: 16px;
+  font-weight: 400;
   margin-top: 25px;
+  letter-spacing: 0.3px;
 `;
 
 const CelebrationText = styled.div<{ color: string; show: string }>`
@@ -268,26 +287,26 @@ const LegendSmall = styled.div`
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 3px;
-  margin-top: 8px;
-  font-size: 9px;
-  color: #666;
+  gap: 4px;
+  margin-top: 12px;
+  font-size: 11px;
+  color: #8b949e;
 `;
 
 const LegendExpanded = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   margin-top: 25px;
-  font-size: 16px;
-  color: #888;
+  font-size: 14px;
+  color: #8b949e;
 `;
 
 const LegendCellSmall = styled.div<{ color: string }>`
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
   background-color: ${props => props.color};
 `;
 
@@ -299,18 +318,20 @@ const LegendCellExpanded = styled.div<{ color: string }>`
 `;
 
 const TotalHoursSmall = styled.div`
-  color: #888;
-  font-size: 11px;
-  margin-top: 5px;
-  text-align: center;
+  color: #8b949e;
+  font-size: 12px;
+  font-weight: 400;
+  margin-top: 10px;
+  text-align: left;
 `;
 
 const TotalHoursExpanded = styled.div`
-  color: #fff;
-  font-size: 24px;
+  color: #c9d1d9;
+  font-size: 20px;
   margin-top: 25px;
   text-align: center;
-  font-weight: bold;
+  font-weight: 500;
+  letter-spacing: -0.2px;
 `;
 
 const StudyHeatmap: React.FC = () => {
@@ -463,9 +484,12 @@ const StudyHeatmap: React.FC = () => {
 
   if (loading) {
     return (
-      <HeatmapContainerSmall>
-        <HeatmapTitleSmall>Loading...</HeatmapTitleSmall>
-      </HeatmapContainerSmall>
+      <>
+        <FontStyle />
+        <HeatmapContainerSmall>
+          <HeatmapTitleSmall>Loading...</HeatmapTitleSmall>
+        </HeatmapContainerSmall>
+      </>
     );
   }
 
@@ -473,6 +497,7 @@ const StudyHeatmap: React.FC = () => {
   if (isExpanded) {
     return (
       <>
+        <FontStyle />
         <Overlay onClick={handleClose} />
         <HeatmapContainerExpanded>
           <CloseButton onClick={handleClose}>&times;</CloseButton>
@@ -502,7 +527,7 @@ const StudyHeatmap: React.FC = () => {
 
           <LegendExpanded>
             <span>Less</span>
-            <LegendCellExpanded color="#2d2d2d" />
+            <LegendCellExpanded color="#21262d" />
             <LegendCellExpanded color="#0e4429" />
             <LegendCellExpanded color="#006d32" />
             <LegendCellExpanded color="#26a641" />
@@ -548,40 +573,43 @@ const StudyHeatmap: React.FC = () => {
 
   // Small corner view - click to expand
   return (
-    <HeatmapContainerSmall onClick={() => setIsExpanded(true)}>
-      <HeatmapTitleSmall>Study Tracker</HeatmapTitleSmall>
+    <>
+      <FontStyle />
+      <HeatmapContainerSmall onClick={() => setIsExpanded(true)}>
+        <HeatmapTitleSmall>Study Tracker</HeatmapTitleSmall>
 
-      <HeatmapGridSmall weeks={numWeeks}>
-        {dates.map((date, i) => {
-          const dateStr = dateFns.format(date, 'yyyy-MM-dd');
-          const hours = studyData[dateStr] || 0;
-          const isFuture = dateFns.isFuture(dateFns.startOfDay(date)) && !dateFns.isToday(date);
+        <HeatmapGridSmall weeks={numWeeks}>
+          {dates.map((date, i) => {
+            const dateStr = dateFns.format(date, 'yyyy-MM-dd');
+            const hours = studyData[dateStr] || 0;
+            const isFuture = dateFns.isFuture(dateFns.startOfDay(date)) && !dateFns.isToday(date);
 
-          return (
-            <DayCellSmall
-              key={i}
-              intensity={hours}
-              isfuture={isFuture.toString()}
-              title={`${dateFns.format(date, 'MMM d')}: ${hours}h`}
-            />
-          );
-        })}
-      </HeatmapGridSmall>
+            return (
+              <DayCellSmall
+                key={i}
+                intensity={hours}
+                isfuture={isFuture.toString()}
+                title={`${dateFns.format(date, 'MMM d')}: ${hours}h`}
+              />
+            );
+          })}
+        </HeatmapGridSmall>
 
-      <LegendSmall>
-        <span>Less</span>
-        <LegendCellSmall color="#2d2d2d" />
-        <LegendCellSmall color="#0e4429" />
-        <LegendCellSmall color="#006d32" />
-        <LegendCellSmall color="#26a641" />
-        <LegendCellSmall color="#39d353" />
-        <span>More</span>
-      </LegendSmall>
+        <LegendSmall>
+          <span>Less</span>
+          <LegendCellSmall color="#21262d" />
+          <LegendCellSmall color="#0e4429" />
+          <LegendCellSmall color="#006d32" />
+          <LegendCellSmall color="#26a641" />
+          <LegendCellSmall color="#39d353" />
+          <span>More</span>
+        </LegendSmall>
 
-      <TotalHoursSmall>
-        Total: {totalHours} hours studied
-      </TotalHoursSmall>
-    </HeatmapContainerSmall>
+        <TotalHoursSmall>
+          {totalHours} hours studied
+        </TotalHoursSmall>
+      </HeatmapContainerSmall>
+    </>
   );
 };
 
