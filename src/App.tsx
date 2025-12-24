@@ -9,6 +9,7 @@ import * as dateFns from 'date-fns';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import type { RefObject } from 'react';
 import type { Container, Engine } from "tsparticles-engine";
+import StudyHeatmap from './StudyHeatmap';
 
 const TEST_DATE: string = '';
 
@@ -427,6 +428,7 @@ function App() {
         </Doctor>
         </>)
          }
+    <StudyHeatmap />
   </Wrapper>
     );
     }
