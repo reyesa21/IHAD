@@ -154,13 +154,13 @@ const HeatmapGridSmall = styled.div<{ weeks: number }>`
 
 const HeatmapGridExpanded = styled.div<{ weeks: number }>`
   display: grid;
-  grid-template-columns: repeat(${props => props.weeks}, 14px);
-  grid-template-rows: repeat(7, 14px);
-  gap: 4px;
+  grid-template-columns: repeat(${props => props.weeks}, 1fr);
+  grid-template-rows: repeat(7, 1fr);
+  gap: 3px;
   grid-auto-flow: column;
-  justify-content: center;
-  overflow-x: auto;
-  padding: 10px 0;
+  width: 100%;
+  aspect-ratio: ${props => props.weeks / 7};
+  max-height: 50vh;
 `;
 
 const DayCellSmall = styled.div<{ intensity: number; isfuture: string }>`
@@ -178,9 +178,9 @@ const DayCellSmall = styled.div<{ intensity: number; isfuture: string }>`
 `;
 
 const DayCellExpanded = styled.div<{ intensity: number; isfuture: string; istoday: string }>`
-  width: 14px;
-  height: 14px;
-  border-radius: 4px;
+  width: 100%;
+  height: 100%;
+  border-radius: 3px;
   background-color: ${props => {
     if (props.isfuture === 'true') return '#161b22';
     if (props.intensity === 0) return '#21262d';
@@ -311,9 +311,9 @@ const LegendCellSmall = styled.div<{ color: string }>`
 `;
 
 const LegendCellExpanded = styled.div<{ color: string }>`
-  width: 14px;
-  height: 14px;
-  border-radius: 4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
   background-color: ${props => props.color};
 `;
 
