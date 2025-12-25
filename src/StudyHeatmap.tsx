@@ -9,7 +9,7 @@ const FontStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 `;
 
-const STEP_2_DATE = new Date('2027-05-08');
+const STEP_2_DATE = new Date('2026-05-08');
 
 // "Shave and a haircut" knock pattern - simplified detection
 // Pattern: tap tap-tap-tap tap [pause] tap tap (7 taps total)
