@@ -346,6 +346,7 @@ const StudyHeatmap: React.FC = () => {
   const [celebration, setCelebration] = useState({ show: false, text: '', color: '' });
   const [sparkles, setSparkles] = useState<Array<{ id: number; x: number; y: number; color: string; delay: number; size: number }>>([]);
   const knockResetRef = useRef<NodeJS.Timeout | null>(null);
+  const celebrationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const sparkleIdRef = useRef(0);
 
   const today = dateFns.format(new Date(), 'yyyy-MM-dd');
@@ -430,6 +431,11 @@ const StudyHeatmap: React.FC = () => {
   };
 
   const triggerCelebration = (hours: number) => {
+    // Clear any existing timeout to prevent premature clearing
+    if (celebrationTimeoutRef.current) {
+      clearTimeout(celebrationTimeoutRef.current);
+    }
+
     const messages = CELEBRATIONS[hours] || ['Nice!'];
     const message = messages[Math.floor(Math.random() * messages.length)];
     const color = CELEBRATION_COLORS[hours];
@@ -446,7 +452,7 @@ const StudyHeatmap: React.FC = () => {
     }));
     setSparkles(newSparkles);
 
-    setTimeout(() => {
+    celebrationTimeoutRef.current = setTimeout(() => {
       setCelebration({ show: false, text: '', color: '' });
       setSparkles([]);
     }, 1200);
