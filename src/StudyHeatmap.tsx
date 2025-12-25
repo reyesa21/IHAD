@@ -84,7 +84,7 @@ const HeatmapContainerExpanded = styled.div`
   padding: 30px;
   z-index: 1000;
   width: calc(100% - 48px);
-  max-width: min(95vw, 1200px);
+  max-width: 1200px;
   max-height: 90vh;
   overflow-y: auto;
   backdrop-filter: blur(20px);
@@ -92,7 +92,6 @@ const HeatmapContainerExpanded = styled.div`
   -webkit-user-select: none;
   box-shadow: 0 0 100px rgba(0, 0, 0, 0.8);
   font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-  margin: 0 24px;
 `;
 
 const Overlay = styled.div`
