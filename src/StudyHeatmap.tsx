@@ -170,10 +170,10 @@ const DayCellSmall = styled.div<{ intensity: number; isfuture: string }>`
   background-color: ${props => {
     if (props.isfuture === 'true') return '#161b22';
     if (props.intensity === 0) return '#21262d';
-    if (props.intensity <= 2) return '#0a3069';
-    if (props.intensity <= 4) return '#0550ae';
-    if (props.intensity <= 6) return '#1f6feb';
-    return '#58a6ff';
+    if (props.intensity <= 2) return '#3b1d59';
+    if (props.intensity <= 4) return '#6b21a8';
+    if (props.intensity <= 6) return '#9333ea';
+    return '#c084fc';
   }};
 `;
 
@@ -186,10 +186,10 @@ const DayCellExpanded = styled.div<{ intensity: number; isfuture: string; istoda
   background-color: ${props => {
     if (props.isfuture === 'true') return '#161b22';
     if (props.intensity === 0) return '#21262d';
-    if (props.intensity <= 2) return '#0a3069';
-    if (props.intensity <= 4) return '#0550ae';
-    if (props.intensity <= 6) return '#1f6feb';
-    return '#58a6ff';
+    if (props.intensity <= 2) return '#3b1d59';
+    if (props.intensity <= 4) return '#6b21a8';
+    if (props.intensity <= 6) return '#9333ea';
+    return '#c084fc';
   }};
   border: ${props => props.istoday === 'true' ? '2px solid #fff' : 'none'};
   box-sizing: border-box;
@@ -537,10 +537,10 @@ const StudyHeatmap: React.FC = () => {
           <LegendExpanded>
             <span>Less</span>
             <LegendCellExpanded color="#21262d" />
-            <LegendCellExpanded color="#0a3069" />
-            <LegendCellExpanded color="#0550ae" />
-            <LegendCellExpanded color="#1f6feb" />
-            <LegendCellExpanded color="#58a6ff" />
+            <LegendCellExpanded color="#3b1d59" />
+            <LegendCellExpanded color="#6b21a8" />
+            <LegendCellExpanded color="#9333ea" />
+            <LegendCellExpanded color="#c084fc" />
             <span>More</span>
           </LegendExpanded>
 
@@ -607,10 +607,10 @@ const StudyHeatmap: React.FC = () => {
         <LegendSmall>
           <span>Less</span>
           <LegendCellSmall color="#21262d" />
-          <LegendCellSmall color="#0a3069" />
-          <LegendCellSmall color="#0550ae" />
-          <LegendCellSmall color="#1f6feb" />
-          <LegendCellSmall color="#58a6ff" />
+          <LegendCellSmall color="#3b1d59" />
+          <LegendCellSmall color="#6b21a8" />
+          <LegendCellSmall color="#9333ea" />
+          <LegendCellSmall color="#c084fc" />
           <span>More</span>
         </LegendSmall>
 
