@@ -343,7 +343,7 @@ const StudyHeatmap: React.FC = () => {
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [loading, setLoading] = useState(true);
   const [knockTimes, setKnockTimes] = useState<number[]>([]);
-  const [celebration, setCelebration] = useState({ show: false, text: '', color: '' });
+  const [celebration, setCelebration] = useState({ show: false, text: '', color: '', id: 0 });
   const [sparkles, setSparkles] = useState<Array<{ id: number; x: number; y: number; color: string; delay: number; size: number }>>([]);
   const knockResetRef = useRef<NodeJS.Timeout | null>(null);
   const celebrationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -440,7 +440,7 @@ const StudyHeatmap: React.FC = () => {
     const message = messages[Math.floor(Math.random() * messages.length)];
     const color = CELEBRATION_COLORS[hours];
 
-    setCelebration({ show: true, text: message, color });
+    setCelebration(prev => ({ show: true, text: message, color, id: prev.id + 1 }));
 
     const newSparkles = Array.from({ length: 15 }, (_, i) => ({
       id: sparkleIdRef.current++,
@@ -453,7 +453,7 @@ const StudyHeatmap: React.FC = () => {
     setSparkles(newSparkles);
 
     celebrationTimeoutRef.current = setTimeout(() => {
-      setCelebration({ show: false, text: '', color: '' });
+      setCelebration(prev => ({ show: false, text: '', color: '', id: prev.id }));
       setSparkles([]);
     }, 1200);
   };
@@ -550,7 +550,7 @@ const StudyHeatmap: React.FC = () => {
 
           {isUnlocked && (
             <SecretPanel>
-              <CelebrationText show={celebration.show.toString()} color={celebration.color}>
+              <CelebrationText key={celebration.id} show={celebration.show.toString()} color={celebration.color}>
                 {celebration.text}
               </CelebrationText>
 
