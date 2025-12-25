@@ -81,7 +81,7 @@ const HeatmapContainerExpanded = styled.div`
   background: #0d1117;
   border: 1px solid #30363d;
   border-radius: 24px;
-  padding: 30px;
+  padding: 10px;
   z-index: 1000;
   width: calc(100% - 48px);
   max-width: 1200px;
@@ -197,7 +197,7 @@ const DayCellExpanded = styled.div<{ intensity: number; isfuture: string; istoda
 
 const SecretPanel = styled.div`
   margin-top: 40px;
-  padding: 40px;
+  padding: 10px;
   background: rgba(33, 38, 45, 0.8);
   border: 1px solid #30363d;
   border-radius: 16px;
