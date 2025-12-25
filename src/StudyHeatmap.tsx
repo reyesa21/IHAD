@@ -48,14 +48,14 @@ const floatUp = keyframes`
 
 const HeatmapContainerSmall = styled.div`
   position: fixed;
-  bottom: 24px;
-  right: 24px;
+  bottom: 12px;
+  right: 12px;
   background: #161b22;
   border: 1px solid #30363d;
-  border-radius: 16px;
-  padding: 20px;
+  border-radius: 8px;
+  padding: 10px;
   z-index: 1000;
-  max-width: 420px;
+  max-width: 220px;
   backdrop-filter: blur(10px);
   user-select: none;
   -webkit-user-select: none;
@@ -65,7 +65,7 @@ const HeatmapContainerSmall = styled.div`
 
   &:hover {
     transform: scale(1.02);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
   }
 
   &:active {
@@ -106,11 +106,11 @@ const Overlay = styled.div`
 
 const HeatmapTitleSmall = styled.div`
   color: #c9d1d9;
-  font-size: 14px;
+  font-size: 10px;
   font-weight: 500;
-  margin-bottom: 14px;
+  margin-bottom: 6px;
   text-align: left;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.2px;
 `;
 
 const HeatmapTitleExpanded = styled.div`
@@ -145,9 +145,9 @@ const CloseButton = styled.button`
 
 const HeatmapGridSmall = styled.div<{ weeks: number }>`
   display: grid;
-  grid-template-columns: repeat(${props => props.weeks}, 14px);
-  grid-template-rows: repeat(7, 14px);
-  gap: 4px;
+  grid-template-columns: repeat(${props => props.weeks}, 7px);
+  grid-template-rows: repeat(7, 7px);
+  gap: 2px;
   grid-auto-flow: column;
   overflow-x: auto;
 `;
@@ -164,9 +164,9 @@ const HeatmapGridExpanded = styled.div<{ weeks: number }>`
 `;
 
 const DayCellSmall = styled.div<{ intensity: number; isfuture: string }>`
-  width: 14px;
-  height: 14px;
-  border-radius: 4px;
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
   background-color: ${props => {
     if (props.isfuture === 'true') return '#161b22';
     if (props.intensity === 0) return '#21262d';
@@ -289,9 +289,9 @@ const LegendSmall = styled.div`
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 4px;
-  margin-top: 12px;
-  font-size: 11px;
+  gap: 2px;
+  margin-top: 6px;
+  font-size: 8px;
   color: #8b949e;
 `;
 
@@ -306,9 +306,9 @@ const LegendExpanded = styled.div`
 `;
 
 const LegendCellSmall = styled.div<{ color: string }>`
-  width: 14px;
-  height: 14px;
-  border-radius: 4px;
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
   background-color: ${props => props.color};
 `;
 
@@ -321,9 +321,9 @@ const LegendCellExpanded = styled.div<{ color: string }>`
 
 const TotalHoursSmall = styled.div`
   color: #8b949e;
-  font-size: 12px;
+  font-size: 8px;
   font-weight: 400;
-  margin-top: 10px;
+  margin-top: 5px;
   text-align: left;
 `;
 
