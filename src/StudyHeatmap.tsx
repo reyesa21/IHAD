@@ -256,8 +256,8 @@ const HourLabel = styled.div`
 `;
 
 const CelebrationText = styled.div<{ color: string; show: string }>`
-  position: absolute;
-  top: 30px;
+  position: fixed;
+  top: 40%;
   left: 50%;
   transform: translateX(-50%);
   font-size: 40px;
@@ -268,6 +268,7 @@ const CelebrationText = styled.div<{ color: string; show: string }>`
   text-shadow: 0 0 30px ${props => props.color};
   pointer-events: none;
   white-space: nowrap;
+  z-index: 9999;
 `;
 
 const Sparkle = styled.div<{ x: number; y: number; color: string; delay: number; size: number }>`
